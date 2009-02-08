@@ -7,15 +7,31 @@ import martian
 
 import plone.directives.form.schema
 
-from plone.autoform.interfaces import FORMDATA_KEY
+from plone.autoform.interfaces import OMITTED_KEY, WIDGETS_KEY, MODES_KEY, ORDER_KEY
 
 TEMP_KEY = '__form_directive_values__'
 
+# Storages
 
-# Directives
+class FormMetadataDictStorage(object):
+    """Store a dict value in the TEMP_KEY tagged value, under the key in
+    directive.key
+    """
 
-class FormMetadataStorage(object):
-    """Stores a value in the 'plone.formdata' metadata format.
+    def set(self, locals_, directive, value):
+        tags = locals_.setdefault(zope.interface.interface.TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
+        tags.setdefault(directive.key, {}).update(value)
+
+    def get(self, directive, component, default):
+        return component.queryTaggedValue(TEMP_KEY, {}).get(directive.key, default)
+
+    def setattr(self, context, directive, value):
+        tags = context.queryTaggedValue(TEMP_KEY, {})
+        tags.setdefault(directive.key, {}).update(value)
+
+class FormMetadataListStorage(object):
+    """Store a list value in the TEMP_KEY tagged value, under the key in
+    directive.key
     """
 
     def set(self, locals_, directive, value):
@@ -29,62 +45,65 @@ class FormMetadataStorage(object):
         tags = context.queryTaggedValue(TEMP_KEY, {})
         tags.setdefault(directive.key, []).extend(value)
 
-FORM_METADATA = FormMetadataStorage()        
+FORM_METADATA_DICT = FormMetadataDictStorage()        
+FORM_METADATA_LIST = FormMetadataListStorage()
+
+# Directives
 
 class omitted(martian.Directive):
     
     scope = martian.CLASS
-    store = FORM_METADATA
+    store = FORM_METADATA_DICT
     
-    key = u"omitted"
+    key = OMITTED_KEY
     
     def factory(self, *args):
-        return [(a, "true") for a in args]
+        return dict([(a, 'true') for a in args])
 
 class mode(martian.Directive):
     
     scope = martian.CLASS
-    store = FORM_METADATA
+    store = FORM_METADATA_DICT
     
-    key = u"modes"
+    key = MODES_KEY
     
     def factory(self, **kw):
-        return kw.items()
+        return kw
 
 class widget(martian.Directive):
     
     scope = martian.CLASS
-    store = FORM_METADATA
+    store = FORM_METADATA_DICT
     
-    key = u"widgets"
+    key = WIDGETS_KEY
     
     def factory(self, **kw):
-        items = []
+        widgets = {}
         for field_name, widget in kw.items():
             if not isinstance(widget, basestring):
                 widget = "%s.%s" % (widget.__module__, widget.__name__)
-            items.append((field_name, widget))
-        return items
+            widgets[field_name] = widget
+        return widgets
         
 class order_before(martian.Directive):
     
     scope = martian.CLASS
-    store = FORM_METADATA
+    store = FORM_METADATA_LIST
     
-    key = u"before"
+    key = ORDER_KEY
     
     def factory(self, **kw):
-        return kw.items()
+        return [(field_name, 'before', relative_to) for field_name, relative_to in kw.items()]
 
 class order_after(martian.Directive):
     
     scope = martian.CLASS
-    store = FORM_METADATA
+    store = FORM_METADATA_LIST
     
-    key = u"after"
+    key = ORDER_KEY
     
     def factory(self, **kw):
-        return kw.items()
+        return [(field_name, 'after', relative_to) for field_name, relative_to in kw.items()]
 
 # Grokkers
 
@@ -107,16 +126,23 @@ class FormSchemaGrokker(martian.InstanceGrokker):
         if directive_supplied is None:
             return False
         
-        real = interface.queryTaggedValue(FORMDATA_KEY, {})
-        for k, v in directive_supplied.items():
-            real.setdefault(k, []).extend(v)
-        
-        if not real:
-            return False
+        for key, tgv in directive_supplied.items():
+            existing_value = interface.queryTaggedValue(key, None)
             
-        interface.setTaggedValue(FORMDATA_KEY, real)
-        interface.setTaggedValue(TEMP_KEY, None)
+            if existing_value is not None:
+                if type(existing_value) != type(tgv):
+                    # Don't overwrite if we have a different type
+                    continue
+                elif isinstance(existing_value, list):
+                    existing_value.extend(tgv)
+                    tgv = existing_value
+                elif isinstance(existing_value, dict):
+                    existing_value.update(tgv)
+                    tgv = existing_value
+                    
+            interface.setTaggedValue(key, tgv)
         
+        interface.setTaggedValue(TEMP_KEY, None)
         return True
 
 __all__ = ('omitted', 'mode', 'widget', 'order_before', 'order_after')
