@@ -8,6 +8,7 @@ import martian
 import plone.directives.form.schema
 
 from plone.autoform.interfaces import OMITTED_KEY, WIDGETS_KEY, MODES_KEY, ORDER_KEY
+from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY
 
 TEMP_KEY = '__form_directive_values__'
 
@@ -105,6 +106,26 @@ class order_after(martian.Directive):
     def factory(self, **kw):
         return [(field_name, 'after', relative_to) for field_name, relative_to in kw.items()]
 
+class read_permission(martian.Directive):
+    
+    scope = martian.CLASS
+    store = FORM_METADATA_DICT
+    
+    key = READ_PERMISSIONS_KEY
+    
+    def factory(self, **kw):
+        return kw
+        
+class write_permission(martian.Directive):
+    
+    scope = martian.CLASS
+    store = FORM_METADATA_DICT
+    
+    key = WRITE_PERMISSIONS_KEY
+    
+    def factory(self, **kw):
+        return kw
+
 # Grokkers
 
 class FormSchemaGrokker(martian.InstanceGrokker):
@@ -115,6 +136,8 @@ class FormSchemaGrokker(martian.InstanceGrokker):
     martian.directive(widget)
     martian.directive(order_before)
     martian.directive(order_after)
+    martian.directive(read_permission)
+    martian.directive(write_permission)
     
     def execute(self, interface, config, **kw):
         
