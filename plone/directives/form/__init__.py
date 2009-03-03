@@ -65,7 +65,7 @@ zope.deferredimport.defineFrom('plone.autoform.interfaces',
 
 # z3c.form base classes: Form, SchemaForm, AddForm, SchemaAddForm, EditForm,
 # SchemaEditForm, DisplayForm and SchemaDisplayForm. The 'Schema' versions
-# use plone.autoform.formbase.AutoExtensibleForm and require that a schema
+# use plone.autoform.form.AutoExtensibleForm and require that a schema
 # is set using the 'schema' attribute. The other forms are normal forms.
 #
 # >>> class MyForm(form.Form)
@@ -75,5 +75,5 @@ zope.deferredimport.defineFrom('plone.autoform.interfaces',
 
 zope.deferredimport.defineFrom('plone.directives.form.form',
     'Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
-        'EditForm', 'SchemaEditForm', 'DisplayForm', 'SchemaDisplayForm',
+        'EditForm', 'SchemaEditForm',
 )
