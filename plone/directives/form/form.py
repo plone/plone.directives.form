@@ -12,12 +12,16 @@ import grokcore.component
 import grokcore.view
 import grokcore.view.util
 
+import five.grok
+
 import plone.directives.form.schema
 
 import z3c.form.interfaces
 import z3c.form.form
 import z3c.form.button
-import plone.autoform.formbase
+
+import plone.autoform.form
+import plone.autoform.view
 
 import zope.i18nmessageid
 
@@ -48,7 +52,7 @@ class Form(GrokkedForm, z3c.form.form.Form):
     """
     martian.baseclass()
 
-class SchemaForm(plone.autoform.formbase.AutoExtensibleForm, Form):
+class SchemaForm(plone.autoform.form.AutoExtensibleForm, Form):
     """A basic extensible form
     """
     martian.baseclass()
@@ -100,7 +104,7 @@ class AddForm(GrokkedForm, z3c.form.form.AddForm):
         self.actions["save"].addClass("context")
         self.actions["cancel"].addClass("standalone")
 
-class SchemaAddForm(plone.autoform.formbase.AutoExtensibleForm, AddForm):
+class SchemaAddForm(plone.autoform.form.AutoExtensibleForm, AddForm):
     """An extensible add form.
     """
     martian.baseclass()
@@ -136,16 +140,40 @@ class EditForm(GrokkedForm, z3c.form.form.EditForm):
         self.actions["save"].addClass("context")
         self.actions["cancel"].addClass("standalone")
 
-class SchemaEditForm(plone.autoform.formbase.AutoExtensibleForm, EditForm):
+class SchemaEditForm(plone.autoform.form.AutoExtensibleForm, EditForm):
     """An extensible edit form
     """
     martian.baseclass()
     
     schema = None # Must be set by subclass
 
+# Display forms
+
+class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
+    """A view that knows about field widgets, but otherwise has all the
+    goodness of a grok.View, including automatic templates.
+    """
+    martian.baseclass()
+    
+    def __init__(self, context, request):
+        plone.autoform.view.WidgetsView.__init__(self, context, request)
+        five.grok.View.__init__(self, context, request)    
+    
+    def render(self):
+        template = getattr(self, 'template', None)
+        if template is not None:
+            return self._render_template()
+        return zope.publisher.publish.mapply(self.render, (), self.request)
+    render.base_method = True
+        
 # Grokkers
 
 class FormGrokker(martian.ClassGrokker):
+    """Wrap standard z3c.form forms with plone.z3cform.layout and register
+    them as views, using the same directives as other views. Note that
+    templates are *not* automatically assigned.
+    """
+    
     martian.component(GrokkedForm)
     
     martian.directive(grokcore.component.context)
@@ -167,10 +195,11 @@ class FormGrokker(martian.ClassGrokker):
         if permission is None:
             permission = self.default_permissions.get(form.__class__, self.permission_fallback)
 
-        if issubclass(form, plone.autoform.formbase.AutoExtensibleForm):
+        if issubclass(form, plone.autoform.form.AutoExtensibleForm):
             if getattr(form, 'schema', None) is None:
                 
-                if issubclass(form, (EditForm, Form)):
+                if issubclass(form, (EditForm, Form)) and \
+                        zope.interface.interfaces.IInterface.providedBy(context):
                     form.schema = context
                 else:
                     raise martian.error.GrokImportError(
@@ -193,6 +222,24 @@ class FormGrokker(martian.ClassGrokker):
             )
 
         return True
+
+class DisplayFormGrokker(martian.ClassGrokker):
+    """Let a display form use its context as an implicit schema, if the
+    context has been set.
+    """
+    
+    martian.component(DisplayForm)
+    
+    martian.directive(grokcore.component.context)
+
+    def execute(self, factory, config, context, **kw):
+        
+        if getattr(factory, 'schema', None) is None and \
+                zope.interface.interfaces.IInterface.providedBy(context):
+            factory.schema = context
+            return True
+        else:
+            return False
     
 __all__ = ('Form', 'SchemaForm', 'AddForm', 'SchemaAddForm', 
-            'EditForm', 'SchemaEditForm', 'DisplayForm', 'SchemaDisplayForm')
+            'EditForm', 'SchemaEditForm', 'DisplayForm',)
