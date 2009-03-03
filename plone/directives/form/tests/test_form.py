@@ -3,164 +3,213 @@ from plone.mocktestcase import MockTestCase
 
 import zope.schema
 
-from grokcore.component.testing import grok, grok_component
+import martian.error
 
-from plone.directives.form import schema, form
+from zope.interface import Interface, implements, alsoProvides
+from zope.component import getMultiAdapter, provideUtility
 
-from plone.autoform.interfaces import OMITTED_KEY, WIDGETS_KEY, MODES_KEY, ORDER_KEY
-from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY
+from zope.publisher.browser import TestRequest
 
-class DummyWidget(object):
+import grokcore.component.testing
+
+from zope.security.permission import Permission
+
+from plone.directives import form
+from five import grok
+
+class ILayer(Interface):
     pass
 
-class TestSchemaDirectives(MockTestCase):
+class IDummy(Interface):
+    pass
+
+class IDummy2(Interface):
+    pass
+
+class Dummy(object):
+    implements(IDummy)
+    
+    def absolute_url(self):
+        return "http://dummy"
+
+class Request(TestRequest):
+    
+    # Zope 2 requests have this
+    def __setitem__(self, name, value):
+        self._environ[name] = value
+
+class TestFormDirectives(MockTestCase):
 
     def setUp(self):
-        super(TestSchemaDirectives, self).setUp()
-        grok('plone.directives.form.form')
+        super(TestFormDirectives, self).setUp()
+        grokcore.component.testing.grok('plone.directives.form.form')
+        
+        provideUtility(Permission('zope2.View'), name='zope2.View')
+        provideUtility(Permission('cmf.ModifyPortalContent'), name='cmf.ModifyPortalContent')
+        provideUtility(Permission('cmf.AddPortalContent'), name='cmf.AddPortalContent')
 
-    def test_schema_directives_store_tagged_values(self):
+    def test_form_grokker_with_directives(self):
         
-        class IDummy(schema.Schema):
-            
-            form.omitted('foo', 'bar')
-            form.widget(foo='some.dummy.Widget', baz='other.Widget')
-            form.mode(bar='hidden')
-            form.order_before(baz='title')
-            form.order_after(qux='title')
-            form.read_permission(foo='zope2.View')
-            form.write_permission(foo='cmf.ModifyPortalContent')
-            
-            foo = zope.schema.TextLine(title=u"Foo")
-            bar = zope.schema.TextLine(title=u"Bar")
-            baz = zope.schema.TextLine(title=u"Baz")
-            qux = zope.schema.TextLine(title=u"Qux")
-            
+        class TestForm(form.Form):
+            grok.context(IDummy)
+            grok.name('my-test-form')
+            grok.layer(ILayer)
+            grok.require('zope2.View')
+        
         self.replay()
         
-        self.assertEquals(None, IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
+        grokcore.component.testing.grok_component('TestForm', TestForm)
         
-        grok_component('IDummy', IDummy)
+        context = Dummy()
+        request = Request()
+        alsoProvides(request, ILayer)
         
-        self.assertEquals({'foo': 'some.dummy.Widget',
-                           'baz': 'other.Widget'},
-                          IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals({'foo': 'true',
-                           'bar': 'true'},
-                          IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals({'bar': 'hidden'},
-                          IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals([('baz', 'before', 'title',), 
-                           ('qux', 'after', 'title')],
-                          IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals({'foo': 'zope2.View'},
-                          IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals({'foo': 'cmf.ModifyPortalContent'},
-                          IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-                                  
-    def test_widget_supports_instances_and_strings(self):
+        view = getMultiAdapter((context, request), name="my-test-form")
         
-        class IDummy(schema.Schema):
-            
-            form.widget(foo=DummyWidget)
-            
-            foo = zope.schema.TextLine(title=u"Foo")
-            bar = zope.schema.TextLine(title=u"Bar")
-            baz = zope.schema.TextLine(title=u"Baz")
-            
+        self.assertEquals(TestForm, view.form)
+
+    def test_grokker_with_defaults(self):
+        
+        class TestForm(form.Form):
+            grok.context(IDummy)
+        
         self.replay()
         
-        self.assertEquals(None, IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
+        grokcore.component.testing.grok_component('TestForm', TestForm)
         
-        grok_component('IDummy', IDummy)
+        context = Dummy()
+        request = Request()
         
-        self.assertEquals({'foo': 'plone.directives.form.tests.test_form.DummyWidget'},
-                  IDummy.queryTaggedValue(WIDGETS_KEY))
+        view = getMultiAdapter((context, request), name="testform")
         
-    def test_schema_directives_extend_existing_tagged_values(self):
+        self.assertEquals(TestForm, view.form)
+
+    def test_schema_form(self):
         
-        class IDummy(schema.Schema):
-            form.widget(foo='some.dummy.Widget')
+        class TestForm(form.SchemaForm):
+            grok.context(IDummy)
+            schema = IDummy2
             
-            foo = zope.schema.TextLine(title=u"Foo")
-            bar = zope.schema.TextLine(title=u"Bar")
-            baz = zope.schema.TextLine(title=u"Baz")
-            
-        IDummy.setTaggedValue(WIDGETS_KEY, {'alpha': 'some.Widget'})
-            
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.assertEquals(TestForm, view.form)
+        self.assertEquals(IDummy2, view.form.schema)
+    
+    def test_schema_form_implicit_schema(self):
+        
+        class TestForm(form.SchemaForm):
+            grok.context(IDummy)
+        
         self.replay()
         
-        self.assertEquals({'alpha': 'some.Widget'}, IDummy.queryTaggedValue(WIDGETS_KEY))
+        grokcore.component.testing.grok_component('TestForm', TestForm)
         
-        grok_component('IDummy', IDummy)
+        context = Dummy()
+        request = Request()
         
-        self.assertEquals({'alpha': 'some.Widget', 'foo': 'some.dummy.Widget'},
-                          IDummy.queryTaggedValue(WIDGETS_KEY))
+        view = getMultiAdapter((context, request), name="testform")
         
-    def test_multiple_invocations(self):
+        self.assertEquals(TestForm, view.form)
+        self.assertEquals(IDummy, view.form.schema)
         
-        class IDummy(schema.Schema):
-            
-            form.omitted('foo')
-            form.omitted('bar')
-            form.widget(foo='some.dummy.Widget')
-            form.widget(baz='other.Widget')
-            form.mode(bar='hidden')
-            form.mode(foo='display')
-            form.order_before(baz='title')
-            form.order_after(baz='qux')
-            form.order_after(qux='bar')
-            form.order_before(foo='body')
-            form.read_permission(foo='zope2.View', bar='zope2.View')
-            form.read_permission(baz='random.Permission')
-            form.write_permission(foo='cmf.ModifyPortalContent')
-            form.write_permission(baz='another.Permission')
-            
-            foo = zope.schema.TextLine(title=u"Foo")
-            bar = zope.schema.TextLine(title=u"Bar")
-            baz = zope.schema.TextLine(title=u"Baz")
-            qux = zope.schema.TextLine(title=u"Qux")
-            
+    def test_add_form(self):
+        
+        class TestForm(form.AddForm):
+            grok.context(IDummy)
+        
         self.replay()
         
-        self.assertEquals(None, IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
+        grokcore.component.testing.grok_component('TestForm', TestForm)
         
-        grok_component('IDummy', IDummy)
+        context = Dummy()
+        request = Request()
         
-        self.assertEquals({'foo': 'some.dummy.Widget',
-                           'baz': 'other.Widget'},
-                          IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals({'foo': 'true',
-                           'bar': 'true'},
-                          IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals({'bar': 'hidden', 'foo': 'display'},
-                          IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals([('baz', 'before', 'title'),
-                           ('baz', 'after', 'qux'),
-                           ('qux', 'after', 'bar'),
-                           ('foo', 'before', 'body'),],
-                          IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals({'foo': 'zope2.View', 'bar': 'zope2.View', 'baz': 'random.Permission'},
-                          IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals({'foo': 'cmf.ModifyPortalContent', 'baz': 'another.Permission'},
-                          IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.assertEquals(TestForm, view.form)
+        
+        self.assertEquals("http://dummy", view.form_instance.nextURL())
+        view.form_instance.immediate_view = "http://other_view"
+        self.assertEquals("http://other_view", view.form_instance.nextURL())
+
+    def test_schema_add_form(self):
+        
+        class TestForm(form.SchemaAddForm):
+            grok.context(IDummy)
+            schema = IDummy2
+        
+        self.replay()
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.assertEquals(TestForm, view.form)
+        self.assertEquals(IDummy2, view.form.schema)
+    
+    # Note: No implicit schema-from-context here, since context of add form
+    #  is container.
+    
+    def test_edit_form(self):
+        
+        class TestForm(form.EditForm):
+            grok.context(IDummy)
+        
+        self.replay()
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.assertEquals(TestForm, view.form)
+
+    def test_schema_edit_form(self):
+        
+        class TestForm(form.SchemaEditForm):
+            grok.context(IDummy)
+            schema = IDummy2
+        
+        self.replay()
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.assertEquals(TestForm, view.form)
+        self.assertEquals(IDummy2, view.form.schema)
+        
+    def test_schema_edit_form_implicit_schema(self):
+        
+        class TestForm(form.SchemaEditForm):
+            grok.context(IDummy)
+        
+        self.replay()
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.assertEquals(TestForm, view.form)
+        self.assertEquals(IDummy, view.form.schema)
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestSchemaDirectives))
+    suite.addTest(unittest.makeSuite(TestFormDirectives))
     return suite

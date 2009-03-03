@@ -36,7 +36,7 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # permission; and field2 will only be displayed on an input form if the user
 # has the 'cmf.ModifyPortalContent' permission.
 
-zope.deferredimport.defineFrom('plone.directives.form.form',
+zope.deferredimport.defineFrom('plone.directives.form.schema',
     'omitted', 'mode', 'widget', 'order_before', 'order_after', 
     'read_permission', 'write_permission'
 )
@@ -61,4 +61,19 @@ zope.deferredimport.defineFrom('plone.directives.form.form',
 
 zope.deferredimport.defineFrom('plone.autoform.interfaces',
     'IFormFieldProvider',
+)
+
+# z3c.form base classes: Form, SchemaForm, AddForm, SchemaAddForm, EditForm,
+# SchemaEditForm, DisplayForm and SchemaDisplayForm. The 'Schema' versions
+# use plone.autoform.formbase.AutoExtensibleForm and require that a schema
+# is set using the 'schema' attribute. The other forms are normal forms.
+#
+# >>> class MyForm(form.Form)
+# ...     grok.name('my-form')
+# ...     grok.context(IMyContext)
+# ...     grok.require('zope2.View')
+
+zope.deferredimport.defineFrom('plone.directives.form.form',
+    'Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
+        'EditForm', 'SchemaEditForm', 'DisplayForm', 'SchemaDisplayForm',
 )

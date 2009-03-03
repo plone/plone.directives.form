@@ -31,6 +31,11 @@ setup(name='plone.directives.form',
           'zope.deferredimport',
           'five.grok',
           'plone.autoform',
+          'plone.z3cform',
+          'Products.statusmessages',
+          'plone.supermodel',
+          'zope.i18nmessageid',
+          'zope.publisher',
           # -*- Extra requirements: -*-
       ],
       entry_points="""

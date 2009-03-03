@@ -1,171 +1,198 @@
 import zope.interface
+import zope.interface.interface
+import zope.interface.interfaces
+
 import zope.component
 
-import zope.interface.interface
-
 import martian
+import martian.error
+
+import grokcore.component
+
+import grokcore.view
+import grokcore.view.util
 
 import plone.directives.form.schema
 
-from plone.autoform.interfaces import OMITTED_KEY, WIDGETS_KEY, MODES_KEY, ORDER_KEY
-from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY
+import z3c.form.interfaces
+import z3c.form.form
+import z3c.form.button
+import plone.autoform.formbase
 
-TEMP_KEY = '__form_directive_values__'
+import zope.i18nmessageid
 
-# Storages
+import zope.publisher.interfaces.browser
+import zope.publisher.publish
 
-class FormMetadataDictStorage(object):
-    """Store a dict value in the TEMP_KEY tagged value, under the key in
-    directive.key
+import Products.statusmessages.interfaces
+import Products.Five.browser.metaconfigure
+
+import plone.z3cform.layout
+
+_ = zope.i18nmessageid.MessageFactory(u'plone.directives.form')
+
+def default_view_name(factory, module=None, **data):
+    return factory.__name__.lower()
+
+# Base classes
+
+class GrokkedForm(object):
+    """Marker base class for all grokked forms. Do not use directly.
     """
+    martian.baseclass()
+    
+# Page forms
 
-    def set(self, locals_, directive, value):
-        tags = locals_.setdefault(zope.interface.interface.TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
-        tags.setdefault(directive.key, {}).update(value)
-
-    def get(self, directive, component, default):
-        return component.queryTaggedValue(TEMP_KEY, {}).get(directive.key, default)
-
-    def setattr(self, context, directive, value):
-        tags = context.queryTaggedValue(TEMP_KEY, {})
-        tags.setdefault(directive.key, {}).update(value)
-
-class FormMetadataListStorage(object):
-    """Store a list value in the TEMP_KEY tagged value, under the key in
-    directive.key
+class Form(GrokkedForm, z3c.form.form.Form):
+    """A basic form.
     """
+    martian.baseclass()
 
-    def set(self, locals_, directive, value):
-        tags = locals_.setdefault(zope.interface.interface.TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
-        tags.setdefault(directive.key, []).extend(value)
+class SchemaForm(plone.autoform.formbase.AutoExtensibleForm, Form):
+    """A basic extensible form
+    """
+    martian.baseclass()
+    
+    schema = None # Must be set by subclass
 
-    def get(self, directive, component, default):
-        return component.queryTaggedValue(TEMP_KEY, {}).get(directive.key, default)
+# Add forms
 
-    def setattr(self, context, directive, value):
-        tags = context.queryTaggedValue(TEMP_KEY, {})
-        tags.setdefault(directive.key, []).extend(value)
+class AddForm(GrokkedForm, z3c.form.form.AddForm):
+    """A standard add form.
+    """
+    martian.baseclass()
+    
+    immediate_view = None
+    
+    def __init__(self, context, request):
+        super(AddForm, self).__init__(context, request)
+        self.request['disable_border'] = True
+    
+    def nextURL(self):
+        if self.immediate_view is not None:
+            return self.immediate_view
+        else:
+            return self.context.absolute_url()
+    
+    # Buttons
+    
+    @z3c.form.button.buttonAndHandler(_('Save'), name='save')
+    def handleAdd(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        obj = self.createAndAdd(data)
+        if obj is not None:
+            # mark only as finished if we get the new object
+            self._finishedAdd = True
+            Products.statusmessages.interfaces.IStatusMessage(self.request) \
+                .addStatusMessage(_(u"Changes saved"), "info")
+    
+    @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
+    def handleCancel(self, action):
+        Products.statusmessages.interfaces.IStatusMessage(self.request) \
+            .addStatusMessage(_(u"Add New Item operation cancelled"), "info")
+        self.request.response.redirect(self.nextURL()) 
 
-FORM_METADATA_DICT = FormMetadataDictStorage()        
-FORM_METADATA_LIST = FormMetadataListStorage()
+    def updateActions(self):
+        super(AddForm, self).updateActions()
+        self.actions["save"].addClass("context")
+        self.actions["cancel"].addClass("standalone")
 
-# Directives
+class SchemaAddForm(plone.autoform.formbase.AutoExtensibleForm, AddForm):
+    """An extensible add form.
+    """
+    martian.baseclass()
+    
+    schema = None # Must be set by subclass
 
-class omitted(martian.Directive):
-    
-    scope = martian.CLASS
-    store = FORM_METADATA_DICT
-    
-    key = OMITTED_KEY
-    
-    def factory(self, *args):
-        return dict([(a, 'true') for a in args])
+# Edit forms
 
-class mode(martian.Directive):
+class EditForm(GrokkedForm, z3c.form.form.EditForm):
+    """A standard edit form
+    """
+    martian.baseclass()
     
-    scope = martian.CLASS
-    store = FORM_METADATA_DICT
+    @z3c.form.button.buttonAndHandler(_(u'Save'), name='save')
+    def handleApply(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        changes = self.applyChanges(data)
+        Products.statusmessages.interfaces.IStatusMessage(self.request) \
+            .addStatusMessage(_(u"Changes saved"), "info")
+        self.request.response.redirect(self.context.absolute_url())
     
-    key = MODES_KEY
+    @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
+    def handleCancel(self, action):
+        Products.statusmessages.interfaces.IStatusMessage(self.request) \
+            .addStatusMessage(_(u"Edit cancelled"), "info")
+        self.request.response.redirect(self.context.absolute_url()) 
     
-    def factory(self, **kw):
-        return kw
+    def updateActions(self):
+        super(EditForm, self).updateActions()
+        self.actions["save"].addClass("context")
+        self.actions["cancel"].addClass("standalone")
 
-class widget(martian.Directive):
+class SchemaEditForm(plone.autoform.formbase.AutoExtensibleForm, EditForm):
+    """An extensible edit form
+    """
+    martian.baseclass()
     
-    scope = martian.CLASS
-    store = FORM_METADATA_DICT
-    
-    key = WIDGETS_KEY
-    
-    def factory(self, **kw):
-        widgets = {}
-        for field_name, widget in kw.items():
-            if not isinstance(widget, basestring):
-                widget = "%s.%s" % (widget.__module__, widget.__name__)
-            widgets[field_name] = widget
-        return widgets
-        
-class order_before(martian.Directive):
-    
-    scope = martian.CLASS
-    store = FORM_METADATA_LIST
-    
-    key = ORDER_KEY
-    
-    def factory(self, **kw):
-        return [(field_name, 'before', relative_to) for field_name, relative_to in kw.items()]
-
-class order_after(martian.Directive):
-    
-    scope = martian.CLASS
-    store = FORM_METADATA_LIST
-    
-    key = ORDER_KEY
-    
-    def factory(self, **kw):
-        return [(field_name, 'after', relative_to) for field_name, relative_to in kw.items()]
-
-class read_permission(martian.Directive):
-    
-    scope = martian.CLASS
-    store = FORM_METADATA_DICT
-    
-    key = READ_PERMISSIONS_KEY
-    
-    def factory(self, **kw):
-        return kw
-        
-class write_permission(martian.Directive):
-    
-    scope = martian.CLASS
-    store = FORM_METADATA_DICT
-    
-    key = WRITE_PERMISSIONS_KEY
-    
-    def factory(self, **kw):
-        return kw
+    schema = None # Must be set by subclass
 
 # Grokkers
 
-class FormSchemaGrokker(martian.InstanceGrokker):
-    martian.component(plone.directives.form.schema.Schema.__class__)
+class FormGrokker(martian.ClassGrokker):
+    martian.component(GrokkedForm)
     
-    martian.directive(omitted)
-    martian.directive(mode)
-    martian.directive(widget)
-    martian.directive(order_before)
-    martian.directive(order_after)
-    martian.directive(read_permission)
-    martian.directive(write_permission)
+    martian.directive(grokcore.component.context)
+    martian.directive(grokcore.view.layer, default=zope.publisher.interfaces.browser.IDefaultBrowserLayer)
+    martian.directive(grokcore.component.name, get_default=default_view_name)
+    martian.directive(grokcore.security.require, name='permission', default=None)
     
-    def execute(self, interface, config, **kw):
-        
-        if not interface.extends(plone.directives.form.schema.Schema):
-            return False
-            
-        # Copy from temporary to real value
-        directive_supplied = interface.queryTaggedValue(TEMP_KEY, None)
-        if directive_supplied is None:
-            return False
-        
-        for key, tgv in directive_supplied.items():
-            existing_value = interface.queryTaggedValue(key, None)
-            
-            if existing_value is not None:
-                if type(existing_value) != type(tgv):
-                    # Don't overwrite if we have a different type
-                    continue
-                elif isinstance(existing_value, list):
-                    existing_value.extend(tgv)
-                    tgv = existing_value
-                elif isinstance(existing_value, dict):
-                    existing_value.update(tgv)
-                    tgv = existing_value
-                    
-            interface.setTaggedValue(key, tgv)
-        
-        interface.setTaggedValue(TEMP_KEY, None)
-        return True
+    default_permissions = {
+        EditForm          : 'cmf.ModifyPortalContent',
+        SchemaEditForm    : 'cmf.ModifyPortalContent',
+        AddForm           : 'cmf.AddPortalContent',
+        SchemaAddForm     : 'cmf.AddPortalContent',
+    }
+    
+    permission_fallback = 'zope.Public'
 
-__all__ = ('omitted', 'mode', 'widget', 'order_before', 'order_after')
+    def execute(self, form, config, context, layer, name, permission, **kw):
+        
+        if permission is None:
+            permission = self.default_permissions.get(form.__class__, self.permission_fallback)
+
+        if issubclass(form, plone.autoform.formbase.AutoExtensibleForm):
+            if getattr(form, 'schema', None) is None:
+                
+                if issubclass(form, (EditForm, Form)):
+                    form.schema = context
+                else:
+                    raise martian.error.GrokImportError(
+                        u"The schema form %s must have a 'schema' attribute "
+                          "defining a schema interface for the form. If you want "
+                          "to set up your fields manually, use a non-schema form "
+                          "base class instead." % (form.__name__))
+        
+        factory = plone.z3cform.layout.wrap_form(form)
+        form.__view_name__ = factory.__view_name__ = name
+        form.__name__ = factory.__name__ = name
+        
+        Products.Five.browser.metaconfigure.page(
+                config,
+                name=name,
+                permission=permission,
+                for_=context,
+                layer=layer,
+                class_=factory
+            )
+
+        return True
+    
+__all__ = ('Form', 'SchemaForm', 'AddForm', 'SchemaAddForm', 
+            'EditForm', 'SchemaEditForm', 'DisplayForm', 'SchemaDisplayForm')
