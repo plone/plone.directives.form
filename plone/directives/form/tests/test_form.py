@@ -1,10 +1,6 @@
 import unittest
 from plone.mocktestcase import MockTestCase
 
-import zope.schema
-
-import martian.error
-
 from zope.interface import Interface, implements, alsoProvides
 from zope.component import getMultiAdapter, provideUtility
 
@@ -42,6 +38,7 @@ class TestFormDirectives(MockTestCase):
 
     def setUp(self):
         super(TestFormDirectives, self).setUp()
+        
         grokcore.component.testing.grok('plone.directives.form.form')
         
         provideUtility(Permission('zope2.View'), name='zope2.View')
@@ -208,6 +205,33 @@ class TestFormDirectives(MockTestCase):
         
         self.assertEquals(TestForm, view.form)
         self.assertEquals(IDummy, view.form.schema)
+
+    def test_display_form_with_schema(self):
+        
+        # Note: We're not testing view registration, since that is done
+        # by the standard five.grok View grokker
+        
+        class TestForm(form.DisplayForm):
+            grok.context(IDummy)
+            schema = IDummy2
+            
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        self.assertEquals(IDummy2, TestForm.schema)
+    
+    def test_display_form_implicit_schema(self):
+
+        # Note: We're not testing view registration, since that is done
+        # by the standard five.grok View grokker
+        
+        class TestForm(form.DisplayForm):
+            grok.context(IDummy)
+        
+        self.replay()
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        self.assertEquals(IDummy, TestForm.schema)
 
 def test_suite():
     suite = unittest.TestSuite()
