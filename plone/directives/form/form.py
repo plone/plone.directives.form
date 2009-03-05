@@ -154,11 +154,6 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
     goodness of a grok.View, including automatic templates.
     """
     martian.baseclass()
-
-    def __init__(self, context, request):
-        plone.autoform.view.WidgetsView.__init__(self, context, request)
-        five.grok.View.__init__(self, context, request)
-
     
     def __init__(self, context, request):
         plone.autoform.view.WidgetsView.__init__(self, context, request)
