@@ -94,7 +94,7 @@ you must first ensure that the meta.zcml file from plone.supermodel is loaded.
 We simulate this here like so:
 
     >>> from grokcore.component.testing import grok, grok_component
-    >>> grok('plone.directives.form.schema')
+    >>> grok('plone.directives.form.meta')
 
 Then, add the following in the configure.zcml file for the package where the
 interface is defined:

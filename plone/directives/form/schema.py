@@ -1,19 +1,11 @@
-import sys
-import os.path
-
 import martian
-import martian.error
 
-import zope.interface
-
-import plone.supermodel.model
-
-import plone.supermodel
-import plone.supermodel.utils
-
+from zope.interface import Interface
 from zope.interface.interface import TAGGED_DATA
 
 from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY, FIELDSETS_KEY
+from plone.supermodel.model import Fieldset
+
 from plone.autoform.interfaces import OMITTED_KEY, WIDGETS_KEY, MODES_KEY, ORDER_KEY
 from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY
 
@@ -21,7 +13,7 @@ TEMP_KEY = '__form_directive_values__'
 
 # Base schemata
 
-class Schema(zope.interface.Interface):
+class Schema(Interface):
     """Base class for schema interfaces that can be grokked using the
     model() directive.
     """
@@ -34,7 +26,7 @@ class FormMetadataDictStorage(object):
     """
 
     def set(self, locals_, directive, value):
-        tags = locals_.setdefault(zope.interface.interface.TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
+        tags = locals_.setdefault(TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
         tags.setdefault(directive.key, {}).update(value)
 
     def get(self, directive, component, default):
@@ -50,7 +42,7 @@ class FormMetadataListStorage(object):
     """
 
     def set(self, locals_, directive, value):
-        tags = locals_.setdefault(zope.interface.interface.TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
+        tags = locals_.setdefault(TAGGED_DATA, {}).setdefault(TEMP_KEY, {})
         tags.setdefault(directive.key, []).extend(value)
 
     def get(self, directive, component, default):
@@ -97,8 +89,7 @@ class fieldset(martian.Directive):
     key = FIELDSETS_KEY
     
     def factory(self, name, label=None, description=None, fields=None):
-        return [plone.supermodel.model.Fieldset(name, label=label, 
-                    description=description, fields=fields)]
+        return [Fieldset(name, label=label, description=description, fields=fields)]
 
 class omitted(martian.Directive):
     """Directive used to omit one or more fields
@@ -189,109 +180,5 @@ class write_permission(martian.Directive):
     def factory(self, **kw):
         return kw
 
-# Grokkers
-
-class SupermodelSchemaGrokker(martian.InstanceGrokker):
-    """Grok a schema that is to be loaded from a plone.supermodel XML file
-    """
-    martian.component(Schema.__class__)
-    martian.directive(model)
-    
-    def execute(self, interface, config, **kw):
-        
-        if not interface.extends(Schema):
-           return False
-        
-        filename = interface.queryTaggedValue(FILENAME_KEY, None)
-        
-        if filename is not None:
-            
-            schema = interface.queryTaggedValue(SCHEMA_NAME_KEY, u"")
-            
-            module_name = interface.__module__
-            module = sys.modules[module_name]
-        
-            directory = module_name
-        
-            if hasattr(module, '__path__'):
-                directory = module.__path__[0]
-            elif "." in module_name:
-                parent_module_name = module_name[:module_name.rfind('.')]
-                directory = sys.modules[parent_module_name].__path__[0]
-        
-            directory = os.path.abspath(directory)
-            filename = os.path.abspath(os.path.join(directory, filename))
-            
-            # Let / act as path separator on all platforms
-            filename = filename.replace('/', os.path.sep)
-        
-            interface.setTaggedValue(FILENAME_KEY, filename)
-        
-            config.action(
-                discriminator=('plone.supermodel.schema', interface, filename, schema),
-                callable=scribble_schema,
-                args=(interface,),
-                order=9999,
-                )
-        
-        return True
-
-class FormSchemaGrokker(martian.InstanceGrokker):
-    """Grok form schema hints
-    """
-    martian.component(Schema.__class__)
-    
-    martian.directive(fieldset)
-    martian.directive(omitted)
-    martian.directive(mode)
-    martian.directive(widget)
-    martian.directive(order_before)
-    martian.directive(order_after)
-    martian.directive(read_permission)
-    martian.directive(write_permission)
-    
-    def execute(self, interface, config, **kw):
-        
-        if not interface.extends(Schema):
-            return False
-            
-        # Copy from temporary to real value
-        directive_supplied = interface.queryTaggedValue(TEMP_KEY, None)
-        if directive_supplied is None:
-            return False
-        
-        for key, tgv in directive_supplied.items():
-            existing_value = interface.queryTaggedValue(key, None)
-            
-            if existing_value is not None:
-                if type(existing_value) != type(tgv):
-                    # Don't overwrite if we have a different type
-                    continue
-                elif isinstance(existing_value, list):
-                    existing_value.extend(tgv)
-                    tgv = existing_value
-                elif isinstance(existing_value, dict):
-                    existing_value.update(tgv)
-                    tgv = existing_value
-                    
-            interface.setTaggedValue(key, tgv)
-        
-        interface.setTaggedValue(TEMP_KEY, None)
-        return True
-
-def scribble_schema(interface):
-    
-    filename = interface.getTaggedValue(FILENAME_KEY)
-    schema = interface.queryTaggedValue(SCHEMA_NAME_KEY, u"")
-    
-    model = plone.supermodel.load_file(filename)
-    
-    if schema not in model.schemata:
-        raise martian.error.GrokImportError(
-                u"Schema '%s' specified for interface %s does not exist in %s." % 
-                    (schema, interface.__identifier__, filename,)) 
-    
-    plone.supermodel.utils.sync_schema(model.schemata[schema], interface, overwrite=False)
-    
 __all__ = ('Schema', 'model', 'fieldset', 'omitted', 'mode', 'widget', 
             'order_before', 'order_after', 'read_permission', 'write_permission')

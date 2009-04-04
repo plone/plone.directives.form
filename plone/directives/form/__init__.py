@@ -77,3 +77,16 @@ zope.deferredimport.defineFrom('plone.directives.form.form',
     'Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
         'EditForm', 'SchemaEditForm', 'DisplayForm',
 )
+
+# z3c.form value adapters for computed values: default_value (for a widget),
+# widget_label and button_label.
+# 
+# >>> @default_value(field=IMySchema['some_field'])
+# ... def get_default(data):
+# ...     return data.context.Title().lower()
+# 
+# See docstrings in value.py for more.
+
+zope.deferredimport.defineFrom('plone.directives.form.value',
+    'default_value', 'widget_label', 'button_label',
+)

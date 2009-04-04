@@ -26,7 +26,7 @@ class TestSchemaDirectives(MockTestCase):
 
     def setUp(self):
         super(TestSchemaDirectives, self).setUp()
-        grok('plone.directives.form.schema')
+        grok('plone.directives.form.meta')
 
     def test_schema_directives_store_tagged_values(self):
         

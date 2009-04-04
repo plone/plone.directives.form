@@ -96,3 +96,51 @@ The 'omitted()' directive takes a list of omitted field names instead. The
 'widget()' directive allows widgets to be set either as a dotted name, or
 using an imported field widget factory. The 'before()' directive has a 
 corresponding 'after' directive.
+
+Value adapters
+--------------
+
+z3c.form has the concept of a 'value adapter', a component that can provide
+a value for an attribute (usually of widgets and buttons) at runtime. This
+package comes with some helpful decorators to register value adapters for
+computed values. For example::
+
+    from plone.directives import form
+    from zope import schema
+    
+    class IMySchema(form.Schema):
+    
+        title = schema.TextLine(title=u"Title")
+
+    @form.default_value(field=IMySchema['title'])
+    def default_title(data):
+        return data.context.suggested_title
+        
+The decorator takes one or more discriminators. The available descriminators
+for `default_value` are:
+
+    context -- The type of context (e.g. an interface)
+    request -- The type of request (e.g. a layer marker interface). You can
+        use 'layer' as an alias for 'request', but note that the data passed
+        to the function will have a 'request' attribute only.
+    view -- The type of form (e.g. a form instance or interface). You can
+        use 'form' as an alias for 'view', but note that the data passed to
+        the function will have 'view' attribute only.
+    field -- The field instance (or a field interface).
+    widget -- The widget type (e.g. an interface).
+    
+You must specify either 'field' or 'widget'. The object passed to the
+decorated function has an attribute for each descriminator.
+
+There are two more decorators:
+
+    widget_label -- Provide a dynamic label for a widget. Takes the same
+        discriminators as the `default_value` decorator.
+    button_label -- Provide a dynamic label for a button. Takes parameters
+        content (alias context), request (alias layer), form (alias view),
+        manager and button.
+
+Please note the rather unfortunate differences in naming between the button 
+descriptors (content vs. context, form vs. view) and the widget ones. The
+descriptor will accept the same names, but the data object passed to the
+function will only contain the names as defined in z3c.form, so be careful.

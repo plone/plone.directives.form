@@ -1,22 +1,6 @@
-import zope.interface
-import zope.interface.interface
-import zope.interface.interfaces
-
-import zope.component
-
 import martian
-import martian.error
-
-import grokcore.component
-
-import grokcore.view
-import grokcore.view.util
-
 import five.grok
 
-import plone.directives.form.schema
-
-import z3c.form.interfaces
 import z3c.form.form
 import z3c.form.button
 
@@ -25,20 +9,13 @@ import plone.autoform.view
 
 import zope.i18nmessageid
 
-import zope.publisher.interfaces.browser
 import zope.publisher.publish
 
-import Products.statusmessages.interfaces
-import Products.Five.browser.metaconfigure
-
-import plone.z3cform.layout
+from Products.statusmessages.interfaces import IStatusMessage
 
 _ = zope.i18nmessageid.MessageFactory(u'plone.directives.form')
 
-def default_view_name(factory, module=None, **data):
-    return factory.__name__.lower()
-
-# Base classes
+# Form base classes
 
 class GrokkedForm(object):
     """Marker base class for all grokked forms. Do not use directly.
@@ -90,13 +67,11 @@ class AddForm(GrokkedForm, z3c.form.form.AddForm):
         if obj is not None:
             # mark only as finished if we get the new object
             self._finishedAdd = True
-            Products.statusmessages.interfaces.IStatusMessage(self.request) \
-                .addStatusMessage(_(u"Changes saved"), "info")
+            IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
     
     @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
     def handleCancel(self, action):
-        Products.statusmessages.interfaces.IStatusMessage(self.request) \
-            .addStatusMessage(_(u"Add New Item operation cancelled"), "info")
+        IStatusMessage(self.request).addStatusMessage(_(u"Add New Item operation cancelled"), "info")
         self.request.response.redirect(self.nextURL()) 
 
     def updateActions(self):
@@ -125,14 +100,12 @@ class EditForm(GrokkedForm, z3c.form.form.EditForm):
             self.status = self.formErrorsMessage
             return
         changes = self.applyChanges(data)
-        Products.statusmessages.interfaces.IStatusMessage(self.request) \
-            .addStatusMessage(_(u"Changes saved"), "info")
+        IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
         self.request.response.redirect(self.context.absolute_url())
     
     @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
     def handleCancel(self, action):
-        Products.statusmessages.interfaces.IStatusMessage(self.request) \
-            .addStatusMessage(_(u"Edit cancelled"), "info")
+        IStatusMessage(self.request).addStatusMessage(_(u"Edit cancelled"), "info")
         self.request.response.redirect(self.context.absolute_url()) 
     
     def updateActions(self):
@@ -166,80 +139,5 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
         return zope.publisher.publish.mapply(self.render, (), self.request)
     render.base_method = True
         
-# Grokkers
-
-class FormGrokker(martian.ClassGrokker):
-    """Wrap standard z3c.form forms with plone.z3cform.layout and register
-    them as views, using the same directives as other views. Note that
-    templates are *not* automatically assigned.
-    """
-    
-    martian.component(GrokkedForm)
-    
-    martian.directive(grokcore.component.context)
-    martian.directive(grokcore.view.layer, default=zope.publisher.interfaces.browser.IDefaultBrowserLayer)
-    martian.directive(grokcore.component.name, get_default=default_view_name)
-    martian.directive(grokcore.security.require, name='permission', default=None)
-    
-    default_permissions = {
-        EditForm          : 'cmf.ModifyPortalContent',
-        SchemaEditForm    : 'cmf.ModifyPortalContent',
-        AddForm           : 'cmf.AddPortalContent',
-        SchemaAddForm     : 'cmf.AddPortalContent',
-    }
-    
-    permission_fallback = 'zope.Public'
-
-    def execute(self, form, config, context, layer, name, permission, **kw):
-        
-        if permission is None:
-            permission = self.default_permissions.get(form.__class__, self.permission_fallback)
-
-        if issubclass(form, plone.autoform.form.AutoExtensibleForm):
-            if getattr(form, 'schema', None) is None:
-                
-                if issubclass(form, (EditForm, Form)) and \
-                        zope.interface.interfaces.IInterface.providedBy(context):
-                    form.schema = context
-                else:
-                    raise martian.error.GrokImportError(
-                        u"The schema form %s must have a 'schema' attribute "
-                          "defining a schema interface for the form. If you want "
-                          "to set up your fields manually, use a non-schema form "
-                          "base class instead." % (form.__name__))
-        
-        factory = plone.z3cform.layout.wrap_form(form)
-        form.__view_name__ = factory.__view_name__ = name
-        form.__name__ = factory.__name__ = name
-        
-        Products.Five.browser.metaconfigure.page(
-                config,
-                name=name,
-                permission=permission,
-                for_=context,
-                layer=layer,
-                class_=factory
-            )
-
-        return True
-
-class DisplayFormGrokker(martian.ClassGrokker):
-    """Let a display form use its context as an implicit schema, if the
-    context has been set.
-    """
-    
-    martian.component(DisplayForm)
-    
-    martian.directive(grokcore.component.context)
-
-    def execute(self, factory, config, context, **kw):
-        
-        if getattr(factory, 'schema', None) is None and \
-                zope.interface.interfaces.IInterface.providedBy(context):
-            factory.schema = context
-            return True
-        else:
-            return False
-    
 __all__ = ('Form', 'SchemaForm', 'AddForm', 'SchemaAddForm', 
             'EditForm', 'SchemaEditForm', 'DisplayForm',)

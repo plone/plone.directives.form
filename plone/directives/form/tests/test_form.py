@@ -39,7 +39,7 @@ class TestFormDirectives(MockTestCase):
     def setUp(self):
         super(TestFormDirectives, self).setUp()
         
-        grokcore.component.testing.grok('plone.directives.form.form')
+        grokcore.component.testing.grok('plone.directives.form.meta')
         
         provideUtility(Permission('zope2.View'), name='zope2.View')
         provideUtility(Permission('cmf.ModifyPortalContent'), name='cmf.ModifyPortalContent')
