@@ -114,6 +114,9 @@ class TestValueDecorators(unittest.TestCase):
         edit_form.update()
         self.assertEquals(u"Computed label", edit_form.actions['apply'].title)
     
+    def test_method_not_changed(self):
+        self.assertEquals(u"Computed add button", add_button_secondary(None))
+    
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(TestValueDecorators),

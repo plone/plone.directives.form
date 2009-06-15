@@ -26,6 +26,8 @@ class _computed_value(object):
         if adapters is None:
             frame.f_locals['__form_value_adapters__'] = adapters = []
         adapters.append(value_adapter)
+        
+        return ob
 
 class default_value(_computed_value):
     """Decorator for functions providing a default field value when rendering
