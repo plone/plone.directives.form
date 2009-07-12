@@ -49,53 +49,55 @@ Below is an example that exercises the various directives::
                 label=u"Extra info",
                 fields=['footer', 'dummy']
             )
-
+        
         title = schema.TextLine(
                 title=u"Title"
             )
-    
+        
         summary = schema.Text(
                 title=u"Summary",
                 description=u"Summary of the body",
                 readonly=True
             )
-    
+        
+        form.widget(body='plone.app.z3cform.wysiwyg.WysiwygFieldWidget')
         body = schema.Text(
                 title=u"Body text",
                 required=False,
                 default=u"Body text goes here"
             )
-        form.widget(body='plone.app.z3cform.wysiwyg.WysiwygFieldWidget')
-                       
+        
+        
+        form.widget(footer=WysiwygFieldWidget)
         footer = schema.Text(
                 title=u"Footer text",
                 required=False
             )
-        form.widget(footer=WysiwygFieldWidget)
-    
+        
+        form.omitted('dummy')
         dummy = schema.Text(
                 title=u"Dummy"
             )
-        form.omitted('dummy')
-    
+        
+        form.mode(secret='hidden')
         secret = schema.TextLine(
                 title=u"Secret",
                 default=u"Secret stuff"
             )
-        form.mode(secret='hidden')
         
+        form.order_before(not_last='summary')
         not_last = schema.TextLine(
                 title=u"Not last",
             )
-        form.before(not_last='summary')
+        
 
-Here, we have placed the directives immediately after the fields they
+Here, we have placed the directives immediately before the fields they
 affect, but they could be placed anywhere in the interface body. All the
 directives can take multiple values, usually in the form fieldname='value'.
 The 'omitted()' directive takes a list of omitted field names instead. The
 'widget()' directive allows widgets to be set either as a dotted name, or
-using an imported field widget factory. The 'before()' directive has a 
-corresponding 'after' directive.
+using an imported field widget factory. The 'order_before()' directive has a 
+corresponding 'order_after()' directive.
 
 Value adapters
 --------------
@@ -119,28 +121,90 @@ computed values. For example::
 The decorator takes one or more discriminators. The available descriminators
 for `default_value` are:
 
-    context -- The type of context (e.g. an interface)
-    request -- The type of request (e.g. a layer marker interface). You can
-        use 'layer' as an alias for 'request', but note that the data passed
-        to the function will have a 'request' attribute only.
-    view -- The type of form (e.g. a form instance or interface). You can
-        use 'form' as an alias for 'view', but note that the data passed to
-        the function will have 'view' attribute only.
-    field -- The field instance (or a field interface).
-    widget -- The widget type (e.g. an interface).
+context
+  The type of context (e.g. an interface)
+
+request
+  The type of request (e.g. a layer marker interface). You can
+  use 'layer' as an alias for 'request', but note that the data passed
+  to the function will have a 'request' attribute only.
+
+view
+    The type of form (e.g. a form instance or interface). You can
+    use 'form' as an alias for 'view', but note that the data passed to
+    the function will have 'view' attribute only.
+
+field
+    The field instance (or a field interface).
+
+widget
+    The widget type (e.g. an interface).
     
 You must specify either 'field' or 'widget'. The object passed to the
 decorated function has an attribute for each descriminator.
 
 There are two more decorators:
 
-    widget_label -- Provide a dynamic label for a widget. Takes the same
-        discriminators as the `default_value` decorator.
-    button_label -- Provide a dynamic label for a button. Takes parameters
-        content (alias context), request (alias layer), form (alias view),
-        manager and button.
+widget_label
+  Provide a dynamic label for a widget. Takes the same discriminators as the
+  `default_value` decorator.
+  
+button_label -- Provide a dynamic label for a button. Takes parameters
+  content (alias context), request (alias layer), form (alias view),
+  manager and button.
 
 Please note the rather unfortunate differences in naming between the button 
 descriptors (content vs. context, form vs. view) and the widget ones. The
 descriptor will accept the same names, but the data object passed to the
 function will only contain the names as defined in z3c.form, so be careful.
+
+Form base classes
+-----------------
+
+If you need to create your own forms, this package provides a number of
+convenient base classes that will be grokked much like a grok.View or 
+grok.CodeView. The grokkers take care of wrapping the form in a plone.z3cform
+FormWrapper as well.
+
+The base classes can all be imported from plone.directives.form, e.g::
+
+    from plone.directives import form
+    from z3c.form import field
+    
+    class MyForm(form.Form):
+        fields = field.Fields(IMyFormSchema)
+        ...
+        
+The various options are:
+
+Form
+    A simple page form, basically a grokked and automatically wrapped version
+    of z3c.form.form.Form.
+
+SchemaForm
+    A page form that uses plone.autoform. You must set the 'schema' class
+    variable (or implement it as a property) to a schema interface form which
+    the form will be built. Form widget hints will be taken into account.
+
+AddForm
+    A simple add form with "Add" and "Cancel" buttons. You must implement
+    the create() and add() methods. See the z3c.form documentation for more
+    details.
+
+SchemaAddForm
+    An add form using plone.autoform. Again, you must set the 'schema' class
+    variable.
+
+EditForm
+    A simple edit form with "Save" and "Cancel" buttons. See the z3c.form 
+    documentation for more details.
+
+SchemaEditForm
+    An edit form using plone.autoform. Again, you must set the 'schema' class
+    variable.
+
+DisplayForm
+    A view with an automatically associated template (like grok.View), that
+    is initialised with display widgets. See plone.autoform's WidgetsView
+    for more details.
+
