@@ -33,7 +33,7 @@ setup(name='plone.directives.form',
           'plone.autoform',
           'plone.z3cform',
           'Products.statusmessages',
-          'plone.supermodel',
+          'plone.supermodel>=1.0b2',
           'zope.i18nmessageid',
           'zope.publisher',
           # -*- Extra requirements: -*-

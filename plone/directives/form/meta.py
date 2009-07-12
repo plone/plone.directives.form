@@ -17,8 +17,8 @@ from Products.Five.browser.metaconfigure import page as page_directive
 from zope.component.zcml import adapter as adapter_directive
 
 from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY
-from plone.supermodel.utils import sync_schema
-from plone.supermodel import load_file
+from plone.supermodel.utils import syncSchema
+from plone.supermodel import loadFile
 
 from plone.directives.form.form import (
         GrokkedForm,
@@ -217,14 +217,14 @@ def scribble_schema(interface):
     filename = interface.getTaggedValue(FILENAME_KEY)
     schema = interface.queryTaggedValue(SCHEMA_NAME_KEY, u"")
     
-    model = load_file(filename)
+    model = loadFile(filename)
     
     if schema not in model.schemata:
         raise GrokImportError(
                 u"Schema '%s' specified for interface %s does not exist in %s." % 
                     (schema, interface.__identifier__, filename,)) 
     
-    sync_schema(model.schemata[schema], interface, overwrite=False)
+    syncSchema(model.schemata[schema], interface, overwrite=False)
 
 # Value adapter grokkers
 
