@@ -135,7 +135,7 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
     def render(self):
         template = getattr(self, 'template', None)
         if template is not None:
-            return self._render_template()
+            return self.template.render(self)
         return zope.publisher.publish.mapply(self.render, (), self.request)
     render.base_method = True
         

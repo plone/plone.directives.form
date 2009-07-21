@@ -29,7 +29,7 @@ setup(name='plone.directives.form',
       install_requires=[
           'setuptools',
           'zope.deferredimport',
-          'five.grok',
+          'five.grok>=1.0b2',
           'plone.autoform',
           'plone.z3cform',
           'Products.statusmessages',
