@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.0b6 -
+------------------
+
+* Add support for the ``primary()`` directive, which is used to set the
+  primary field for marshalling. See the ``plone.rfc822`` for details.
+  [optilude]
+
 1.0b5 - 2009-07-21
 ------------------
 
