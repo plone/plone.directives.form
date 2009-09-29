@@ -69,6 +69,20 @@ class FilenameStorage(object):
         context.setTaggedValue(FILENAME_KEY, value["filename"])
         context.setTaggedValue(SCHEMA_NAME_KEY, value["schema"])
 
+class PrimaryFieldStorage(object):
+    """Stores the primary() directive value in a schema tagged value.
+    """
+
+    def set(self, locals_, directive, value):
+        tags = locals_.setdefault(TAGGED_DATA, {})
+        tags.setdefault(directive.dotted_name(), []).extend(value)
+
+    def get(self, directive, component, default):
+        return component.queryTaggedValue(directive.dotted_name(), default)
+
+    def setattr(self, context, directive, value):
+        context.setTaggedValue(directive.dotted_name(), value)
+
 # Directives
 
 class model(martian.Directive):
@@ -180,5 +194,16 @@ class write_permission(martian.Directive):
     def factory(self, **kw):
         return kw
 
+class primary(martian.Directive):
+    """Directive used to mark one or more fields as 'primary'
+    """
+    
+    scope = martian.CLASS
+    store = PrimaryFieldStorage()
+    
+    def factory(self, *args):
+        return args
+
 __all__ = ('Schema', 'model', 'fieldset', 'omitted', 'mode', 'widget', 
-            'order_before', 'order_after', 'read_permission', 'write_permission')
+            'order_before', 'order_after', 'read_permission',
+            'write_permission', 'primary_field')

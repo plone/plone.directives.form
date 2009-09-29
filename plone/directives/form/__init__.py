@@ -26,6 +26,7 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # ...     form.order_after(field2='field3')
 # ...     form.read_permission(field1='zope2.View')
 # ...     form.write_permission(field2='cmf.ModifyPortalContent')
+# ...     form.primary('field3')
 # 
 # Here, the 'body' field will use a WYSIWYG widget; 'debug_field' and
 # 'extra_info' will be omitted from forms; the fields 'alpha' and 'beta' will
@@ -33,12 +34,13 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # rendered as a hidden field; 'field1' will be moved to go before 
 # 'field2' and 'field2' will be moved to go after 'field3'; field1 will only
 # be displayed on a display form or view if the user has the 'zope2.View'
-# permission; and field2 will only be displayed on an input form if the user
-# has the 'cmf.ModifyPortalContent' permission.
+# permission; field2 will only be displayed on an input form if the user
+# has the 'cmf.ModifyPortalContent' permission; and 'field3' will be marked
+# as a primary field for marshaling purposes
 
 zope.deferredimport.defineFrom('plone.directives.form.schema',
     'omitted', 'mode', 'widget', 'order_before', 'order_after', 
-    'read_permission', 'write_permission'
+    'read_permission', 'write_permission', 'primary',
 )
 
 # Behavior interfaces can either be marked with or be adaptable to this

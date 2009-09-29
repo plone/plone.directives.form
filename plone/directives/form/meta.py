@@ -2,6 +2,7 @@ import sys
 import os.path
 
 from zope.interface.interfaces import IInterface
+from zope.interface import alsoProvides
 
 import martian
 import grokcore.component
@@ -19,6 +20,8 @@ from zope.component.zcml import adapter as adapter_directive
 from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY
 from plone.supermodel.utils import syncSchema
 from plone.supermodel import loadFile
+
+from plone.rfc822.interfaces import IPrimaryField
 
 from plone.directives.form.form import (
         GrokkedForm,
@@ -41,6 +44,7 @@ from plone.directives.form.schema import (
         order_after,
         read_permission,
         write_permission,
+        primary,
         TEMP_KEY,
     )
 
@@ -141,16 +145,16 @@ class SupermodelSchemaGrokker(martian.InstanceGrokker):
             
             schema = interface.queryTaggedValue(SCHEMA_NAME_KEY, u"")
             
-            module_name = interface.__module__
-            module = sys.modules[module_name]
+            moduleName = interface.__module__
+            module = sys.modules[moduleName]
         
-            directory = module_name
+            directory = moduleName
         
             if hasattr(module, '__path__'):
                 directory = module.__path__[0]
-            elif "." in module_name:
-                parent_module_name = module_name[:module_name.rfind('.')]
-                directory = sys.modules[parent_module_name].__path__[0]
+            elif "." in moduleName:
+                parentModuleName = moduleName[:moduleName.rfind('.')]
+                directory = sys.modules[parentModuleName].__path__[0]
         
             directory = os.path.abspath(directory)
             filename = os.path.abspath(os.path.join(directory, filename))
@@ -182,6 +186,7 @@ class FormSchemaGrokker(martian.InstanceGrokker):
     martian.directive(order_after)
     martian.directive(read_permission)
     martian.directive(write_permission)
+    martian.directive(primary)
     
     def execute(self, interface, config, **kw):
         
@@ -189,27 +194,32 @@ class FormSchemaGrokker(martian.InstanceGrokker):
             return False
             
         # Copy from temporary to real value
-        directive_supplied = interface.queryTaggedValue(TEMP_KEY, None)
-        if directive_supplied is None:
-            return False
-        
-        for key, tgv in directive_supplied.items():
-            existing_value = interface.queryTaggedValue(key, None)
+        directiveSupplied = interface.queryTaggedValue(TEMP_KEY, None)
+        if directiveSupplied is not None:
+            for key, tgv in directiveSupplied.items():
+                existingValue = interface.queryTaggedValue(key, None)
             
-            if existing_value is not None:
-                if type(existing_value) != type(tgv):
-                    # Don't overwrite if we have a different type
-                    continue
-                elif isinstance(existing_value, list):
-                    existing_value.extend(tgv)
-                    tgv = existing_value
-                elif isinstance(existing_value, dict):
-                    existing_value.update(tgv)
-                    tgv = existing_value
+                if existingValue is not None:
+                    if type(existingValue) != type(tgv):
+                        # Don't overwrite if we have a different type
+                        continue
+                    elif isinstance(existingValue, list):
+                        existingValue.extend(tgv)
+                        tgv = existingValue
+                    elif isinstance(existingValue, dict):
+                        existingValue.update(tgv)
+                        tgv = existingValue
                     
-            interface.setTaggedValue(key, tgv)
+                interface.setTaggedValue(key, tgv)
         
-        interface.setTaggedValue(TEMP_KEY, None)
+            interface.setTaggedValue(TEMP_KEY, None)
+        
+        for fieldName in interface.queryTaggedValue(primary.dotted_name(), []):
+            try:
+                alsoProvides(interface[fieldName], IPrimaryField)
+            except KeyError:
+                raise GrokImportError("Field %s set in primary() directive on %s not found" % (fieldName, interface,))
+        
         return True
 
 def scribble_schema(interface):

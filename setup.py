@@ -36,6 +36,7 @@ setup(name='plone.directives.form',
           'plone.supermodel>=1.0b2',
           'zope.i18nmessageid',
           'zope.publisher',
+          'plone.rfc822',
           # -*- Extra requirements: -*-
       ],
       entry_points="""

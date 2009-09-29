@@ -61,6 +61,7 @@ Below is an example that exercises the various directives::
             )
         
         form.widget(body='plone.app.z3cform.wysiwyg.WysiwygFieldWidget')
+        form.primary('body')
         body = schema.Text(
                 title=u"Body text",
                 required=False,
@@ -94,8 +95,8 @@ Below is an example that exercises the various directives::
 Here, we have placed the directives immediately before the fields they
 affect, but they could be placed anywhere in the interface body. All the
 directives can take multiple values, usually in the form fieldname='value'.
-The 'omitted()' directive takes a list of omitted field names instead. The
-'widget()' directive allows widgets to be set either as a dotted name, or
+The 'omitted()' and 'primary()' directives take a list of field names instead.
+The 'widget()' directive allows widgets to be set either as a dotted name, or
 using an imported field widget factory. The 'order_before()' directive has a 
 corresponding 'order_after()' directive.
 

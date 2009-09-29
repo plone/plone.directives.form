@@ -19,6 +19,8 @@ from plone.directives import form
 from plone.autoform.interfaces import OMITTED_KEY, WIDGETS_KEY, MODES_KEY, ORDER_KEY
 from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY
 
+from plone.rfc822.interfaces import IPrimaryField
+
 class DummyWidget(object):
     pass
 
@@ -168,7 +170,33 @@ class TestSchemaDirectives(MockTestCase):
                           IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
         self.assertEquals({'foo': 'cmf.ModifyPortalContent', 'baz': 'another.Permission'},
                           IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-
+    
+    def test_primary_field(self):
+        
+        class IDummy(form.Schema):
+            
+            form.primary('foo')
+            form.primary('bar', 'baz')
+            
+            foo = zope.schema.TextLine(title=u"Foo")
+            bar = zope.schema.TextLine(title=u"Bar")
+            baz = zope.schema.TextLine(title=u"Baz")
+            qux = zope.schema.TextLine(title=u"Qux")
+            
+        self.replay()
+        
+        self.failIf(IPrimaryField.providedBy(IDummy['foo']))
+        self.failIf(IPrimaryField.providedBy(IDummy['bar']))
+        self.failIf(IPrimaryField.providedBy(IDummy['baz']))
+        self.failIf(IPrimaryField.providedBy(IDummy['qux']))
+        
+        grok_component('IDummy', IDummy)
+        
+        self.failUnless(IPrimaryField.providedBy(IDummy['foo']))
+        self.failUnless(IPrimaryField.providedBy(IDummy['bar']))
+        self.failUnless(IPrimaryField.providedBy(IDummy['baz']))
+        self.failIf(IPrimaryField.providedBy(IDummy['qux']))
+    
     def test_schema_without_model_not_grokked(self):
         
         class IFoo(Schema):
