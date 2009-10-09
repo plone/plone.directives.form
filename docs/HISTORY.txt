@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0b6 -
+1.0b6 - 2009-10-08
 ------------------
 
 * Add support for the ``primary()`` directive, which is used to set the
