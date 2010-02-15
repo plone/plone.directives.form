@@ -55,7 +55,7 @@ WRAP = True
 try:
     import pkg_resources
     zope2Version = pkg_resources.get_distribution('Zope2').version.split('.')
-    if int(zope2Version[0]) > 2 or (int(zope2Version[0]) == 2 and int(zope2Version[1]) >= 13):
+    if int(zope2Version[0]) > 2 or (int(zope2Version[0]) == 2 and int(zope2Version[1]) >= 12):
         WRAP = False
 except:
     pass
