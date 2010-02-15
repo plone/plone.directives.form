@@ -1,5 +1,4 @@
 import unittest
-from plone.mocktestcase import MockTestCase
 
 from zope.interface import Interface, implements, alsoProvides
 from zope.component import getMultiAdapter, provideUtility
@@ -34,7 +33,7 @@ class Request(TestRequest):
     def __setitem__(self, name, value):
         self._environ[name] = value
 
-class TestFormDirectives(MockTestCase):
+class TestFormDirectives(unittest.TestCase):
 
     def setUp(self):
         super(TestFormDirectives, self).setUp()
@@ -53,8 +52,6 @@ class TestFormDirectives(MockTestCase):
             grok.layer(ILayer)
             grok.require('zope2.View')
         
-        self.replay()
-        
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
         context = Dummy()
@@ -69,8 +66,6 @@ class TestFormDirectives(MockTestCase):
         
         class TestForm(form.Form):
             grok.context(IDummy)
-        
-        self.replay()
         
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
@@ -102,8 +97,6 @@ class TestFormDirectives(MockTestCase):
         class TestForm(form.SchemaForm):
             grok.context(IDummy)
         
-        self.replay()
-        
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
         context = Dummy()
@@ -118,8 +111,6 @@ class TestFormDirectives(MockTestCase):
         
         class TestForm(form.AddForm):
             grok.context(IDummy)
-        
-        self.replay()
         
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
@@ -140,8 +131,6 @@ class TestFormDirectives(MockTestCase):
             grok.context(IDummy)
             schema = IDummy2
         
-        self.replay()
-        
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
         context = Dummy()
@@ -160,8 +149,6 @@ class TestFormDirectives(MockTestCase):
         class TestForm(form.EditForm):
             grok.context(IDummy)
         
-        self.replay()
-        
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
         context = Dummy()
@@ -177,8 +164,6 @@ class TestFormDirectives(MockTestCase):
             grok.context(IDummy)
             schema = IDummy2
         
-        self.replay()
-        
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
         context = Dummy()
@@ -193,8 +178,6 @@ class TestFormDirectives(MockTestCase):
         
         class TestForm(form.SchemaEditForm):
             grok.context(IDummy)
-        
-        self.replay()
         
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
@@ -226,8 +209,6 @@ class TestFormDirectives(MockTestCase):
         
         class TestForm(form.DisplayForm):
             grok.context(IDummy)
-        
-        self.replay()
         
         grokcore.component.testing.grok_component('TestForm', TestForm)
         

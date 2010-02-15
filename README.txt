@@ -3,9 +3,10 @@ plone.directives.form
 =====================
 
 This package provides optional, Grok-like directives for configuring
-forms using XML schemata as defined by plone.supermodel and/or using widget
-form layout as defined by plone.autoform. It depends on five.grok, which in
-turn depends on the various re-usable grokcore.* packages, but not Grok itself.
+forms, as defined by the `z3c.form`_ library, using XML schemata as defined by
+`plone.supermodel`_ and/or using widget form layout as defined by
+`plone.autoform`_. It depends on `five.grok`_, which in turn depends on the
+various re-usable grokcore.* packages, but not Grok itself.
 
 Schemata loaded from XML
 ------------------------
@@ -28,7 +29,7 @@ See tests/schema.txt for more details.
 Form widget hints
 -----------------
 
-The plone.autoform package provides the ability to generate a form from a
+The `plone.autoform`_ package provides the ability to generate a form from a
 schema, using hints stored in tagged values on that schema to control form's
 layout and field widgets. Those hints can be set using directives in this
 package.
@@ -94,16 +95,18 @@ Below is an example that exercises the various directives::
 
 Here, we have placed the directives immediately before the fields they
 affect, but they could be placed anywhere in the interface body. All the
-directives can take multiple values, usually in the form fieldname='value'.
-The 'omitted()' and 'primary()' directives take a list of field names instead.
-The 'widget()' directive allows widgets to be set either as a dotted name, or
-using an imported field widget factory. The 'order_before()' directive has a 
-corresponding 'order_after()' directive.
+directives can take multiple values, usually in the form
+``fieldname='value'``.
+
+The ``omitted()`` and ``primary()`` directives take a list of field names
+instead. The ``widget()`` directive allows widgets to be set either as a
+dotted name, or using an imported field widget factory. The ``order_before()``
+directive has a  corresponding ``order_after()`` directive.
 
 Value adapters
 --------------
 
-z3c.form has the concept of a 'value adapter', a component that can provide
+z3c.form has the concept of a "value adapter", a component that can provide
 a value for an attribute (usually of widgets and buttons) at runtime. This
 package comes with some helpful decorators to register value adapters for
 computed values. For example::
@@ -119,8 +122,8 @@ computed values. For example::
     def default_title(data):
         return data.context.suggested_title
         
-The decorator takes one or more discriminators. The available descriminators
-for `default_value` are:
+The decorator takes one or more discriminators. The available discriminators
+for ``default_value`` are:
 
 context
   The type of context (e.g. an interface)
@@ -141,14 +144,14 @@ field
 widget
     The widget type (e.g. an interface).
     
-You must specify either 'field' or 'widget'. The object passed to the
-decorated function has an attribute for each descriminator.
+You must specify either ``field`` or ``widget``. The object passed to the
+decorated function has an attribute for each discriminator.
 
 There are two more decorators:
 
 widget_label
   Provide a dynamic label for a widget. Takes the same discriminators as the
-  `default_value` decorator.
+  ``default_value`` decorator.
   
 button_label -- Provide a dynamic label for a button. Takes parameters
   content (alias context), request (alias layer), form (alias view),
@@ -163,9 +166,11 @@ Form base classes
 -----------------
 
 If you need to create your own forms, this package provides a number of
-convenient base classes that will be grokked much like a grok.View or 
-grok.CodeView. The grokkers take care of wrapping the form in a plone.z3cform
-FormWrapper as well.
+convenient base classes that will be grokked much like a ``grok.View``.
+
+In Zope 2.10, the grokkers take care of wrapping the form in a
+`plone.z3cform`_ FormWrapper as well. In Zope 2.12 and later, there is no
+wrapper.
 
 The base classes can all be imported from plone.directives.form, e.g::
 
@@ -176,36 +181,52 @@ The base classes can all be imported from plone.directives.form, e.g::
         fields = field.Fields(IMyFormSchema)
         ...
         
+Each of the form base classes has a "schema" equivalent, which can be
+initialised with a ``schema`` attribute instead of the ``fields`` attribute.
+These forms use `plone.autoform`_'s ``AutoExtensibleForm`` as a base class,
+allowing schema hints as shown above to be processed::
+    
+    from plone.directives import form
+    from z3c.form import field
+    
+    class MyForm(form.Form):
+        schema = IMySchema
+        ...
+
 The various options are:
 
 Form
-    A simple page form, basically a grokked and automatically wrapped version
-    of z3c.form.form.Form.
+    A simple page form, basically a grokked version of ``z3c.form.form.Form``.
 
 SchemaForm
-    A page form that uses plone.autoform. You must set the 'schema' class
+    A page form that uses `plone.autoform`_. You must set the ``schema`` class
     variable (or implement it as a property) to a schema interface form which
     the form will be built. Form widget hints will be taken into account.
 
 AddForm
     A simple add form with "Add" and "Cancel" buttons. You must implement
-    the create() and add() methods. See the z3c.form documentation for more
-    details.
+    the ``create()`` and ``add()`` methods. See the `z3c.form`_ documentation
+    for more details.
 
 SchemaAddForm
-    An add form using plone.autoform. Again, you must set the 'schema' class
-    variable.
+    An add form using `plone.autoform`_. Again, you must set the ``schema``
+    class variable.
 
 EditForm
-    A simple edit form with "Save" and "Cancel" buttons. See the z3c.form 
+    A simple edit form with "Save" and "Cancel" buttons. See the `z3c.form`_
     documentation for more details.
 
 SchemaEditForm
-    An edit form using plone.autoform. Again, you must set the 'schema' class
-    variable.
+    An edit form using `plone.autoform`_. Again, you must set the ``schema``
+    class variable.
 
 DisplayForm
-    A view with an automatically associated template (like grok.View), that
-    is initialised with display widgets. See plone.autoform's WidgetsView
-    for more details.
+    A view with an automatically associated template (like ``grok.View``),
+    that is initialised with display widgets. See ``plone.autoform``'s
+    ``WidgetsView`` for more details.
 
+.. _five.grok: http://pypi.python.org/pypi/five.grok
+.. _z3c.form: http://pypi.python.org/pypi/z3c.form
+.. _plone.z3cform: http://pypi.python.org/pypi/plone.z3cform
+.. _plone.supermodel: http://pypi.python.org/pypi/plone.supermodel
+.. _plone.autoform: http://pypi.python.org/pypi/plone.autoform

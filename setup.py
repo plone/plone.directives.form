@@ -23,9 +23,6 @@ setup(name='plone.directives.form',
       namespace_packages=['plone', 'plone.directives'],
       include_package_data=True,
       zip_safe=False,
-      tests_require=[
-        'plone.mocktestcase',
-      ],
       install_requires=[
           'setuptools',
           'zope.deferredimport',

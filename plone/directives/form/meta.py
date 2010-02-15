@@ -23,6 +23,15 @@ from plone.supermodel import loadFile
 
 from plone.rfc822.interfaces import IPrimaryField
 
+from plone.autoform.interfaces import (
+        OMITTED_KEY,
+        READ_PERMISSIONS_KEY,
+        WRITE_PERMISSIONS_KEY,
+        WIDGETS_KEY,
+        MODES_KEY,
+        ORDER_KEY,
+    )
+
 from plone.directives.form.form import (
         GrokkedForm,
         Form,
@@ -209,15 +218,40 @@ class FormSchemaGrokker(martian.InstanceGrokker):
     
     def execute(self, interface, config, **kw):
         
-        if not interface.extends(Schema):
-            return False
-            
-        # Copy from temporary to real value
         directiveSupplied = interface.queryTaggedValue(TEMP_KEY, None)
+        primaryFields = interface.queryTaggedValue(primary.dotted_name(), [])
+        
+        if not interface.extends(Schema):
+            if directiveSupplied or primaryFields:
+                raise GrokImportError(
+                        u"You have used plone.directives.form directives "
+                        u"on the interface %s, but this does not derive from "
+                        u"plone.directives.form.Schema." % (interface.__identifier__,)
+                    )
+            return False
+        
+        # Copy from temporary to real value
         if directiveSupplied is not None:
             for key, tgv in directiveSupplied.items():
                 existingValue = interface.queryTaggedValue(key, None)
-            
+                
+                # Validate that the value refers to something actually in 
+                # the interface
+                
+                fieldNamesToCheck = []
+                
+                if key in (OMITTED_KEY, MODES_KEY, WIDGETS_KEY, READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY):
+                    fieldNamesToCheck = tgv.keys()
+                elif key in (ORDER_KEY,):
+                    fieldNamesToCheck = [t[0] for t in tgv]
+                
+                for fieldName in fieldNamesToCheck:
+                    if fieldName not in interface:
+                        raise GrokImportError(
+                                u"The directive %s applied to interface %s "
+                                u"refers to unknown field name %s" % (key, interface.__identifier__, fieldName)
+                            )
+                
                 if existingValue is not None:
                     if type(existingValue) != type(tgv):
                         # Don't overwrite if we have a different type
@@ -233,7 +267,7 @@ class FormSchemaGrokker(martian.InstanceGrokker):
         
             interface.setTaggedValue(TEMP_KEY, None)
         
-        for fieldName in interface.queryTaggedValue(primary.dotted_name(), []):
+        for fieldName in primaryFields:
             try:
                 alsoProvides(interface[fieldName], IPrimaryField)
             except KeyError:

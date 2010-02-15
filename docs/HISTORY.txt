@@ -1,6 +1,14 @@
 Changelog
 =========
 
+1.0b7 - unreleased
+------------------
+
+* Warn more forcefully when using form directives on interfaces not deriving
+  from ``Schema``, or using schema hints that refer to field names that cannot
+  be found.
+  [optilude]
+
 1.0b6 - 2009-10-08
 ------------------
 
