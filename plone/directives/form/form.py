@@ -22,6 +22,17 @@ class GrokkedForm(object):
     """
     martian.baseclass()
     
+    # BBB: makes the form have the most important properties that were
+    # exposed by the wrapper view
+    
+    @property
+    def form_instance(self):
+        return self
+    
+    @property
+    def form(self):
+        return self.__class__
+
 # Page forms
 
 class Form(GrokkedForm, z3c.form.form.Form):

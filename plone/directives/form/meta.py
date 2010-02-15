@@ -48,6 +48,18 @@ from plone.directives.form.schema import (
         TEMP_KEY,
     )
 
+# Whether or not we need to wrap the grokked form using the layout form
+# wrapper. We do this by default in Zope < 2.12, but not in Zope 2.12+, where
+# it is unnecessary.
+WRAP = True
+try:
+    import pkg_resources
+    zope2Version = pkg_resources.get_distribution('Zope2').version.split('.')
+    if int(zope2Version[0]) > 2 or (int(zope2Version[0]) == 2 and int(zope2Version[1]) >= 13):
+        WRAP = False
+except:
+    pass
+
 # Form grokkers
 
 def default_view_name(factory, module=None, **data):
@@ -93,9 +105,16 @@ class FormGrokker(martian.ClassGrokker):
                           "to set up your fields manually, use a non-schema form "
                           "base class instead." % (form.__name__))
         
-        factory = wrap_form(form)
-        form.__view_name__ = factory.__view_name__ = name
-        form.__name__ = factory.__name__ = name
+        form.__view_name__ = name
+        form.__name__ = name
+        
+        # Only use the wrapper view if we are on Zope < 2.12
+        if WRAP:
+            factory = wrap_form(form)
+            factory.__view_name__ = name
+            factory.__name__ = name
+        else:
+            factory = form
         
         page_directive(
                 config,
@@ -105,7 +124,7 @@ class FormGrokker(martian.ClassGrokker):
                 layer=layer,
                 class_=factory
             )
-
+        
         return True
 
 class DisplayFormGrokker(martian.ClassGrokker):

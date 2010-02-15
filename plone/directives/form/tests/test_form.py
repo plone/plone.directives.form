@@ -63,7 +63,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="my-test-form")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
 
     def test_grokker_with_defaults(self):
         
@@ -79,7 +79,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
 
     def test_schema_form(self):
         
@@ -94,7 +94,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
         self.assertEquals(IDummy2, view.form.schema)
     
     def test_schema_form_implicit_schema(self):
@@ -111,7 +111,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
         self.assertEquals(IDummy, view.form.schema)
         
     def test_add_form(self):
@@ -128,9 +128,9 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
         
-        self.assertEquals("http://dummy", view.form_instance.nextURL())
+        self.assertEquals("http://dummy", view.form_instance    .nextURL())
         view.form_instance.immediate_view = "http://other_view"
         self.assertEquals("http://other_view", view.form_instance.nextURL())
 
@@ -149,7 +149,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
         self.assertEquals(IDummy2, view.form.schema)
     
     # Note: No implicit schema-from-context here, since context of add form
@@ -169,7 +169,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
 
     def test_schema_edit_form(self):
         
@@ -186,7 +186,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
         self.assertEquals(IDummy2, view.form.schema)
         
     def test_schema_edit_form_implicit_schema(self):
@@ -203,7 +203,7 @@ class TestFormDirectives(MockTestCase):
         
         view = getMultiAdapter((context, request), name="testform")
         
-        self.assertEquals(TestForm, view.form)
+        self.failUnless(issubclass(view.form, TestForm))
         self.assertEquals(IDummy, view.form.schema)
 
     def test_display_form_with_schema(self):
