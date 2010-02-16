@@ -206,4 +206,4 @@ class primary(martian.Directive):
 
 __all__ = ('Schema', 'model', 'fieldset', 'omitted', 'mode', 'widget', 
             'order_before', 'order_after', 'read_permission',
-            'write_permission', 'primary_field')
+            'write_permission', 'primary_field',)

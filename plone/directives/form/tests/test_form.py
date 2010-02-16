@@ -1,16 +1,24 @@
+import warnings
 import unittest
+import zope.component.testing
 
 from zope.interface import Interface, implements, alsoProvides
 from zope.component import getMultiAdapter, provideUtility
+from zope.configuration.config import ConfigurationExecutionError
 
 from zope.publisher.browser import TestRequest
 
 import grokcore.component.testing
+import grokcore.view.interfaces
 
 from zope.security.permission import Permission
 
+from plone.z3cform.layout import FormWrapper
+
 from plone.directives import form
 from five import grok
+
+import plone.directives.form.meta
 
 class ILayer(Interface):
     pass
@@ -33,17 +41,36 @@ class Request(TestRequest):
     def __setitem__(self, name, value):
         self._environ[name] = value
 
+# ignore warnings about unassociated templates, since the way we do the tests
+# mean the association happens after the module is grokked
+warnings.filterwarnings("ignore", ".*unassociated template.*testformwithtemplate.*")
+
 class TestFormDirectives(unittest.TestCase):
 
     def setUp(self):
-        super(TestFormDirectives, self).setUp()
         
+        # On Zope 2.10, the default is True, on 2.12 it's False
+        self.defaultWrap = plone.directives.form.meta.DEFAULT_WRAP
+        plone.directives.form.meta.DEFAULT_WRAP = False
+        
+        grokcore.component.testing.grok('grokcore.component.meta')
+        grokcore.component.testing.grok('grokcore.security.meta')
+        grokcore.component.testing.grok('grokcore.view.meta.templates')
+        grokcore.component.testing.grok('grokcore.view.meta.views')
+        grokcore.component.testing.grok('grokcore.view.meta.skin')
+        grokcore.component.testing.grok('five.grok.meta')
         grokcore.component.testing.grok('plone.directives.form.meta')
+        
+        grokcore.component.testing.grok('grokcore.view.templatereg')
         
         provideUtility(Permission('zope2.View'), name='zope2.View')
         provideUtility(Permission('cmf.ModifyPortalContent'), name='cmf.ModifyPortalContent')
         provideUtility(Permission('cmf.AddPortalContent'), name='cmf.AddPortalContent')
-
+    
+    def tearDown(self):
+        zope.component.testing.tearDown()
+        plone.directives.form.meta.DEFAULT_WRAP = self.defaultWrap
+    
     def test_form_grokker_with_directives(self):
         
         class TestForm(form.Form):
@@ -213,7 +240,122 @@ class TestFormDirectives(unittest.TestCase):
         grokcore.component.testing.grok_component('TestForm', TestForm)
         
         self.assertEquals(IDummy, TestForm.schema)
-
+    
+    def test_wrap(self):
+        
+        class TestForm(form.Form):
+            grok.context(IDummy)
+            form.wrap()
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.failUnless(issubclass(view.form, TestForm))
+        self.failUnless(isinstance(view, FormWrapper))
+    
+    def test_wrap_false(self):
+        
+        class TestForm(form.Form):
+            grok.context(IDummy)
+            form.wrap(False)
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.failUnless(issubclass(view.form, TestForm))
+        self.failUnless(isinstance(view, TestForm))
+    
+    def test_nowrap(self):
+        
+        class TestForm(form.Form):
+            grok.context(IDummy)
+            form.wrap(False)
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.failUnless(issubclass(view.form, TestForm))
+        self.failUnless(isinstance(view, TestForm))
+    
+    def test_wrap_default(self):
+        
+        # Simulate Zope 2.10 default
+        plone.directives.form.meta.DEFAULT_WRAP = True
+        
+        class TestForm(form.Form):
+            grok.context(IDummy)
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.failUnless(issubclass(view.form, TestForm))
+        self.failUnless(isinstance(view, FormWrapper))
+    
+    def test_wrap_default_wrap_false(self):
+        # Simulate Zope 2.10 default
+        plone.directives.form.meta.DEFAULT_WRAP = True
+        
+        class TestForm(form.Form):
+            grok.context(IDummy)
+            form.wrap(False)
+        
+        grokcore.component.testing.grok_component('TestForm', TestForm)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testform")
+        
+        self.failUnless(issubclass(view.form, TestForm))
+        self.failUnless(isinstance(view, TestForm))
+    
+    def test_template(self):
+        
+        class TestFormWithTemplate(form.Form):
+            grok.context(IDummy)
+        
+        grokcore.component.testing.grok(__name__)
+        
+        grokcore.component.testing.grok_component('TestFormWithTemplate', TestFormWithTemplate)
+        
+        context = Dummy()
+        request = Request()
+        
+        view = getMultiAdapter((context, request), name="testformwithtemplate")
+        
+        self.failUnless(issubclass(view.form, TestFormWithTemplate))
+        self.failUnless(grokcore.view.interfaces.ITemplate.providedBy(view.template))
+    
+    def test_template_and_render(self):
+        
+        class TestFormWithTemplate(form.Form):
+            grok.context(IDummy)
+            
+            def render(self):
+                return u"My custom renderer"
+        
+        grokcore.component.testing.grok(__name__)
+        
+        self.assertRaises(ConfigurationExecutionError,
+            grokcore.component.testing.grok_component,
+            'TestFormWithTemplate', TestFormWithTemplate)
+    
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestFormDirectives))

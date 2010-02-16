@@ -78,6 +78,7 @@ zope.deferredimport.defineFrom('plone.autoform.interfaces',
 zope.deferredimport.defineFrom('plone.directives.form.form',
     'Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
         'EditForm', 'SchemaEditForm', 'DisplayForm',
+        'wrap',
 )
 
 # z3c.form value adapters for computed values: default_value (for a widget),

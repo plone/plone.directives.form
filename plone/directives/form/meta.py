@@ -40,8 +40,9 @@ from plone.directives.form.form import (
         AddForm,
         SchemaAddForm,
         DisplayForm,
+        wrap,
     )
-    
+
 from plone.directives.form.schema import (
         Schema,
         model,
@@ -60,12 +61,12 @@ from plone.directives.form.schema import (
 # Whether or not we need to wrap the grokked form using the layout form
 # wrapper. We do this by default in Zope < 2.12, but not in Zope 2.12+, where
 # it is unnecessary.
-WRAP = True
+DEFAULT_WRAP = True
 try:
     import pkg_resources
     zope2Version = pkg_resources.get_distribution('Zope2').version.split('.')
     if int(zope2Version[0]) > 2 or (int(zope2Version[0]) == 2 and int(zope2Version[1]) >= 12):
-        WRAP = False
+        DEFAULT_WRAP = False
 except:
     pass
 
@@ -86,6 +87,7 @@ class FormGrokker(martian.ClassGrokker):
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, get_default=default_view_name)
     martian.directive(grokcore.security.require, name='permission', default=None)
+    martian.directive(wrap, default=None)
     
     default_permissions = {
         EditForm          : 'cmf.ModifyPortalContent',
@@ -94,9 +96,14 @@ class FormGrokker(martian.ClassGrokker):
         SchemaAddForm     : 'cmf.AddPortalContent',
     }
     
-    permission_fallback = 'zope.Public'
-
-    def execute(self, form, config, context, layer, name, permission, **kw):
+    permission_fallback = 'zope2.View'
+    
+    def grok(self, name, form, module_info, **kw):
+        # save the module info so that we can look for templates later
+        form.module_info = module_info
+        return super(FormGrokker, self).grok(name, form, module_info, **kw)
+    
+    def execute(self, form, config, context, layer, name, permission, wrap, **kw):
         
         if permission is None:
             permission = self.default_permissions.get(form.__class__, self.permission_fallback)
@@ -104,8 +111,7 @@ class FormGrokker(martian.ClassGrokker):
         if issubclass(form, AutoExtensibleForm):
             if getattr(form, 'schema', None) is None:
                 
-                if issubclass(form, (EditForm, Form)) and \
-                        IInterface.providedBy(context):
+                if issubclass(form, (EditForm, Form)) and IInterface.providedBy(context):
                     form.schema = context
                 else:
                     raise GrokImportError(
@@ -114,14 +120,23 @@ class FormGrokker(martian.ClassGrokker):
                           "to set up your fields manually, use a non-schema form "
                           "base class instead." % (form.__name__))
         
+        templates = form.module_info.getAnnotation('grok.templates', None)
+        if templates is not None:
+            config.action(
+                discriminator=None,
+                callable=self.checkTemplates,
+                args=(templates, form.module_info, form)
+                )
+        
         form.__view_name__ = name
-        form.__name__ = name
+        
+        if wrap is None:
+            wrap = DEFAULT_WRAP
         
         # Only use the wrapper view if we are on Zope < 2.12
-        if WRAP:
+        if wrap:
             factory = wrap_form(form)
             factory.__view_name__ = name
-            factory.__name__ = name
         else:
             factory = form
         
@@ -135,6 +150,21 @@ class FormGrokker(martian.ClassGrokker):
             )
         
         return True
+    
+    def checkTemplates(self, templates, module_info, factory):
+        
+        def has_render(factory):
+            render = getattr(factory, 'render', None)
+            base_method = getattr(render, 'base_method', False)
+            return render and not base_method
+        
+        def has_no_render(factory):
+            # Unlike the view grokker, we are happy with the base class
+            # version
+            return getattr(factory, 'render', None) is None
+        
+        templates.checkTemplates(module_info, factory, 'view',
+                                 has_render, has_no_render)
 
 class DisplayFormGrokker(martian.ClassGrokker):
     """Let a display form use its context as an implicit schema, if the
@@ -144,7 +174,7 @@ class DisplayFormGrokker(martian.ClassGrokker):
     martian.component(DisplayForm)
     
     martian.directive(grokcore.component.context)
-
+    
     def execute(self, factory, config, context, **kw):
         
         if getattr(factory, 'schema', None) is None and \
@@ -292,9 +322,9 @@ def scribble_schema(interface):
 # Value adapter grokkers
 
 class ValueAdapterGrokker(martian.GlobalGrokker):
-
+    
     def grok(self, name, module, module_info, config, **kw):
-        context = grokcore.component.context.bind().get(module=module)
+        # context = grokcore.component.context.bind().get(module=module)
         adapters = module_info.getAnnotation('form.value_adapters', [])
         for factory, name in adapters:
             adapter_directive(config,

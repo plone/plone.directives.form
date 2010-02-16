@@ -170,17 +170,43 @@ convenient base classes that will be grokked much like a ``grok.View``.
 
 In Zope 2.10, the grokkers take care of wrapping the form in a
 `plone.z3cform`_ FormWrapper as well. In Zope 2.12 and later, there is no
-wrapper.
+wrapper by default. If you want one (e.g. if you are using a custom template
+and you need it to work in both Zope 2.10 and 2.12), you can use the
+``form.wrapped()`` directive in the form class.
 
-The base classes can all be imported from plone.directives.form, e.g::
+The base classes can all be imported from ``plone.directives.form``, e.g::
 
-    from plone.directives import form
+    from five import grok
+    from plone.directives import form, button
     from z3c.form import field
     
     class MyForm(form.Form):
-        fields = field.Fields(IMyFormSchema)
-        ...
+        grok.context(ISomeContext)
+        grok.require('zope2.View')
         
+        fields = field.Fields(IMyFormSchema)
+        
+        @button.buttonAndHandler(u'Submit')
+        def handleApply(self, action):
+            data, errors = self.extractData()
+            ...
+
+The allowed directives are:
+
+* ``grok.context()``, to specify the context of form view. If not given, the
+  grokker will look for a module-level context, much like the standard
+  ``grok.View``.
+* ``grok.require()``, to specify a permission. The default is ``zope2.View``
+  for standard forms, ``cmf.ModifyPortalContent`` for edit forms, and
+  ``cmf.AddPortalContent`` for add forms.
+* ``grok.layer()`` to specify a browser layer
+* ``grok.name()`` to set a different name
+* ``form.wrapped()`` to wrap the form in a layout wrapper view. You can pass
+  an argument of ``True`` or ``False`` to enable or disable wrapping. If no
+  argument is given, it defaults to ``True``. If omitted, the global default
+  is used, which is to wrap in Zope 2.11 or earlier, and to not wrap in Zope
+  2.12 or later
+
 Each of the form base classes has a "schema" equivalent, which can be
 initialised with a ``schema`` attribute instead of the ``fields`` attribute.
 These forms use `plone.autoform`_'s ``AutoExtensibleForm`` as a base class,
@@ -189,11 +215,23 @@ allowing schema hints as shown above to be processed::
     from plone.directives import form
     from z3c.form import field
     
-    class MyForm(form.Form):
+    class MyForm(form.SchemaForm):
+        grok.context(ISomeContext)
+        grok.require('zope2.View')
+        
         schema = IMySchema
-        ...
+        
+        @button.buttonAndHandler(u'Submit')
+        def handleApply(self, action):
+            data, errors = self.extractData()
+            ...
 
-The various options are:
+Note that the ``schema`` can be omitted if you are using ``SchemaForm`` or
+``SchemaEditForm`` and you have given an interface as the argument to
+``grok.context()``. In this case, the context interface will be used as the
+default schema.
+
+The available form base classes are:
 
 Form
     A simple page form, basically a grokked version of ``z3c.form.form.Form``.
@@ -222,11 +260,37 @@ SchemaEditForm
 
 DisplayForm
     A view with an automatically associated template (like ``grok.View``),
-    that is initialised with display widgets. See ``plone.autoform``'s
+    that is initialised with display widgets. See `plone.autoform`_'s
     ``WidgetsView`` for more details.
+
+All of the grokked form base classes above support associating a custom 
+template with the form. This uses the same semantics as ``grok.View``. See
+`grokcore.view`_ for details, but briefly:
+
+* If you want to completely customise rendering, you can override the 
+  ``render()`` method.
+* If you want to use a page template to render a form called ``MyForm`` in
+  the module ``my.package.forms``, create a directory inside ``my.package``
+  called ``forms_templates`` (the prefix should match the module name),
+  and place a file there called ``myform.pt``.
+* If you do neither, the default form template will be used, as is the 
+  standard behaviour in z3c.form.
+
+Note that the automatically associated form template can use ``grok.View``
+methods, such as ``view.url()`` and ``view.redirect()``, which are defined
+in the grokked form base classes.
+
+Also note that you can use the view ``@@ploneform-macros`` from 
+`plone.app.z3cform`_ if you want to use some of the standard form markup.
+For example, the ``titlelessform`` macro will render the ``<form >`` element
+and all fieldsets and fields::
+
+    <metal:block use-macro="context/@@ploneform-macros/titlelessform" />
 
 .. _five.grok: http://pypi.python.org/pypi/five.grok
 .. _z3c.form: http://pypi.python.org/pypi/z3c.form
 .. _plone.z3cform: http://pypi.python.org/pypi/plone.z3cform
+.. _plone.app.z3cform: http://pypi.python.org/pypi/plone.app.z3cform
 .. _plone.supermodel: http://pypi.python.org/pypi/plone.supermodel
 .. _plone.autoform: http://pypi.python.org/pypi/plone.autoform
+.. _grokcore.view: http://pypi.python.org/pypi/grokcore.view

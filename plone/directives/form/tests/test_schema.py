@@ -27,9 +27,11 @@ class DummyWidget(object):
 class TestSchemaDirectives(unittest.TestCase):
 
     def setUp(self):
-        super(TestSchemaDirectives, self).setUp()
         grok('plone.directives.form.meta')
 
+    def tearDown(self):
+        zope.component.testing.tearDown()
+    
     def test_schema_directives_store_tagged_values(self):
         
         class IDummy(form.Schema):
