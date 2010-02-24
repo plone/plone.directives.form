@@ -8,6 +8,12 @@ Changelog
   See README.txt for details.
   [optilude]
 
+* Support unwrapped forms (in Zope 2.12). The default is to wrap in Zope <
+  2.12, and not to wrap in Zope >= 2.12. A new ``form.wrapped()`` directive
+  can be used to force wrapping or non-wrapping (by passing ``False`` as an
+  argument).
+  [optilude]
+
 * Warn more forcefully when using form directives on interfaces not deriving
   from ``Schema``, or using schema hints that refer to field names that cannot
   be found.
