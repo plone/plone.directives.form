@@ -4,6 +4,10 @@ Changelog
 1.0b7 - unreleased
 ------------------
 
+* Add ``@form.validator()`` decorator to register a simple field validator.
+  See README.txt for details.
+  [optilude]
+
 * Warn more forcefully when using form directives on interfaces not deriving
   from ``Schema``, or using schema hints that refer to field names that cannot
   be found.

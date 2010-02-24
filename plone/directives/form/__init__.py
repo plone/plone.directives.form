@@ -93,3 +93,14 @@ zope.deferredimport.defineFrom('plone.directives.form.form',
 zope.deferredimport.defineFrom('plone.directives.form.value',
     'default_value', 'widget_label', 'button_label',
 )
+
+# z3c.form widget validator adapters
+# 
+# >>> @validator(field=IMySchema['some_field'])
+# ... def validateField(value):
+# ...     if value == 42:
+# ...         raise Invalid(u"We don't like this number")
+
+zope.deferredimport.defineFrom('plone.directives.form.validator',
+    'validator',
+)

@@ -8,6 +8,26 @@ forms, as defined by the `z3c.form`_ library, using XML schemata as defined by
 `plone.autoform`_. It depends on `five.grok`_, which in turn depends on the
 various re-usable grokcore.* packages, but not Grok itself.
 
+.. contents:: Contents
+
+Installation
+------------
+
+To use this package you must first install it, either by depending on it
+in your own ``setup.py`` (under the ``install_requires`` list), or by adding
+it directly to your buildout.
+
+This will pull in a number of dependencies. You probably want to pin those
+down to known-good versions by using a known-good version set. See the
+installation instructions of `five.grok`_ for a starting point.
+
+You must also load the relevant configuration from ``meta.zcml`` and
+``configure.zcml``. For example, you could use statements like the following
+in your ``configure.zcml``::
+
+    <include package="plone.directives.form" file="meta.zcml" />
+    <include package="plone.directives.form" />
+
 Schemata loaded from XML
 ------------------------
 
@@ -161,6 +181,64 @@ Please note the rather unfortunate differences in naming between the button
 descriptors (content vs. context, form vs. view) and the widget ones. The
 descriptor will accept the same names, but the data object passed to the
 function will only contain the names as defined in z3c.form, so be careful.
+
+Validators
+----------
+
+By default, z3c.form uses fields' native validation, as implemented by the
+``IField.validate()`` method, as well as field constraints (functions passed
+as the ``constraint`` parameter to fields) and schema invariants (using the
+``@zope.interface.invariant`` decorator in a schema interface). In addition,
+you can define your own widget validators (for an individual field of the
+form) and widget manager validators (which cover the entire form). This is
+useful if you do not want to define a validator on the schema, e.g. because
+the schema is also used elsewhere, or if you want to create a more generic
+validator that is applied to any fields that match its discriminators.
+
+This package provides a grokked decorator which you can use to define a simple
+widget validator, called ``@form.validator()``::
+
+    from plone.directives import form
+    from zope import schema
+    
+    class IMySchema(form.Schema):
+    
+        title = schema.TextLine(title=u"Title")
+    
+    @form.validator(field=IMySchema['title'])
+    def validateTitle(value):
+        if value == value.upper():
+            raise schema.ValidationError(u"Please don't shout")
+
+The validator should return nothing if the field is valid, or raise an
+``zope.schema.ValidationError`` exception with an error message.
+
+The ``@form.validator()`` decorator can take various keyword arguments that
+determine when the validator is invoked. These are:
+
+context
+  The type of context (e.g. an interface)
+
+request
+  The type of request (e.g. a layer marker interface).
+
+view
+    The type of form (e.g. a form instance or interface).
+
+field
+    The field instance (or a field interface).
+
+widget
+    The widget type (e.g. an interface).
+
+Note that this validator function does not give access to the full context
+of the standard validator, such as the field, widget, context or request.
+If you need that, you can create a standard validator adapter, e.g. using
+``grok.Adapter``. See the `z3c.form`_ documentation for details.
+
+Also note that the standard field validator will be called before the custom
+validator is invoked. If you need to override the validator wholesale, you
+can again do so with a custom adapter.
 
 Form base classes
 -----------------

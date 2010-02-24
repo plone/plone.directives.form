@@ -319,7 +319,7 @@ def scribble_schema(interface):
     
     syncSchema(model.schemata[schema], interface, overwrite=False)
 
-# Value adapter grokkers
+# Value adapter grokker
 
 class ValueAdapterGrokker(martian.GlobalGrokker):
     
@@ -330,5 +330,18 @@ class ValueAdapterGrokker(martian.GlobalGrokker):
             adapter_directive(config,
                 factory=(factory,),
                 name=name
+            )
+        return True
+
+# Validator adapter grokker
+
+class ValidatorAdapterGrokker(martian.GlobalGrokker):
+    
+    def grok(self, name, module, module_info, config, **kw):
+        # context = grokcore.component.context.bind().get(module=module)
+        adapters = module_info.getAnnotation('form.validator_adapters', [])
+        for factory in adapters:
+            adapter_directive(config,
+                factory=(factory,),
             )
         return True
