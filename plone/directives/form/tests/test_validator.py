@@ -116,6 +116,4 @@ class TestValidatorDecorator(unittest.TestCase):
         self.assertRaises(schema.ValidationError, validate_field1, 'fail')
 
 def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(TestValidatorDecorator),
-        ))
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

@@ -104,3 +104,13 @@ zope.deferredimport.defineFrom('plone.directives.form.value',
 zope.deferredimport.defineFrom('plone.directives.form.validator',
     'validator',
 )
+
+# z3c.form error message computed value adapters
+# 
+# >>> @error_message(error=TooSmall, field=IMySchema['some_field'])
+# ... def errorMessage(value):
+# ...     return u"The given value (%d) is too small" % value
+
+zope.deferredimport.defineFrom('plone.directives.form.error',
+    'error_message',
+)

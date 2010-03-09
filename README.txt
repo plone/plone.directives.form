@@ -240,6 +240,89 @@ Also note that the standard field validator will be called before the custom
 validator is invoked. If you need to override the validator wholesale, you
 can again do so with a custom adapter.
 
+Error messages
+--------------
+
+When using custom validators, it is easy to supply a tailored error message.
+However, the error messages that arise from the default field validation
+mechanism (e.g. for required fields) are by necessity more generic. Sometimes,
+it may be necessary to override these messages to make them more user
+friendly.
+
+To customise an error message, you can use the ``@form.error_message`` grokked
+decorator. For example::
+
+    from plone.directives import form
+    from zope import schema
+    
+    from zope.schema.interfaces import TooShort
+    
+    class IMySchema(form.Schema):
+    
+        title = schema.TextLine(title=u"Title", min_length=2)
+    
+    @form.error_message(error=TooShort, field=IMySchema['title'])
+    def titleTooShort(value):
+        return u"The title '%s' is too short" % value
+
+The decorated function will be called when constructing an error message for
+the given field. It should return a unicode string or translatable message.
+The value passed is the value that failed validation.
+
+The ``@form.error_message`` validator takes keyword arguments that determine
+when the message is used. It is possible to register a generic error message
+for a given type of error that applies to all fields, or, as shown above,
+a message specific to an individual field and error.
+
+error
+    An exception class that represents the error. All errors inherit from
+    ``zope.interface.Invalid``, and most error also inherit from
+    ``zope.schema.interfaces.ValidationError``. See below for a list of
+    common exception types.
+request
+    The current request. Use this to tie the error to a specific browser
+    layer interface.
+widget
+    The widget that was used. May be either a widget interface or a specific
+    widget class.
+field
+    The field that was used, normally given as a field instance obtained from
+    an interface, as illustrated above.
+form
+    The current form, either as a class or an interface. This is useful if
+    the same interface is used in more than one form, but you only want the
+    error to be shown in one form.
+content
+    The content item that is acting as the context for the form. May be given
+    as either an interface or a class.
+
+None of these parameters is required, but you would normally supply at least
+``error``. In most cases, you should also supply the ``field``, as shown
+above.
+
+The most common validation error exception types are defined in
+``zope.schema``, and can be imported from ``zope.schema.interfaces``:
+
+* ``RequiredMissing``, used when a required field is submitted without a value
+* ``WrongType``, used when a field is passed a value of an invalid type
+* ``TooBig`` and ``TooSmall``, used when a value is outside the ``min`` and/or
+  ``max`` range specified for orderable fields (e.g. numeric or date fields).
+* ``TooLong`` and ``TooShort``, used when a value is outside the
+  ``min_length`` and/or ``max_length`` range specified for length-aware fields
+  (e.g. text or sequence fields).
+* ``InvalidValue``, used when a value is invalid, e.g. a non-ASCII character
+  passed to an ASCII field.
+* ``ConstraintNotSatisfied``, used when a ``constraint`` method returns
+  ``False``.
+* ``WrongContainedType``, used if an object of an invalid type is added
+  to a sequence (i.e. the type does not conform to the field's
+  ``value_type``).
+* ``NotUnique``, used if a uniqueness constraint is violated.
+* ``InvalidURI``, used for ``URI`` fields if the value is not a valid URI. 
+* ``InvalidId``, used for ``Id`` fields if the value is not a valid id.
+* ``InvalidDottedName``, used for ``DottedName`` fields if the value is not
+  a valid dotted name.
+
 Form base classes
 -----------------
 

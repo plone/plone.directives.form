@@ -4,6 +4,10 @@ Changelog
 1.0b7 - unreleased
 ------------------
 
+* Add ``@form.error_message()`` decorator for registering custom error
+  messages for errors and/or fields.
+  [optilude]
+
 * Add ``@form.validator()`` decorator to register a simple field validator.
   See README.txt for details.
   [optilude]

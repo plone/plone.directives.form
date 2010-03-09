@@ -345,3 +345,17 @@ class ValidatorAdapterGrokker(martian.GlobalGrokker):
                 factory=(factory,),
             )
         return True
+
+# Error message adapter grokker
+
+class ErrorMessageAdapterGrokker(martian.GlobalGrokker):
+    
+    def grok(self, name, module, module_info, config, **kw):
+        # context = grokcore.component.context.bind().get(module=module)
+        adapters = module_info.getAnnotation('form.error_message_adapters', [])
+        for factory in adapters:
+            adapter_directive(config,
+                factory=(factory,),
+                name=u"message",
+            )
+        return True
