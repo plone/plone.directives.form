@@ -245,9 +245,9 @@ Error messages
 
 When using custom validators, it is easy to supply a tailored error message.
 However, the error messages that arise from the default field validation
-mechanism (e.g. for required fields) are by necessity more generic. Sometimes,
-it may be necessary to override these messages to make them more user
-friendly.
+mechanism (e.g. when a required field is omitted) are by necessity more
+generic. Sometimes, it may be necessary to override these messages to make
+them more user friendly.
 
 To customise an error message, you can use the ``@form.error_message`` grokked
 decorator. For example::
@@ -272,7 +272,9 @@ The value passed is the value that failed validation.
 The ``@form.error_message`` validator takes keyword arguments that determine
 when the message is used. It is possible to register a generic error message
 for a given type of error that applies to all fields, or, as shown above,
-a message specific to an individual field and error.
+a message specific to an individual field and error. The latter is more
+common. In general, you should be careful if you omit either or both of the
+``error`` and ``field`` discriminators.
 
 error
     An exception class that represents the error. All errors inherit from
@@ -306,22 +308,22 @@ The most common validation error exception types are defined in
 * ``RequiredMissing``, used when a required field is submitted without a value
 * ``WrongType``, used when a field is passed a value of an invalid type
 * ``TooBig`` and ``TooSmall``, used when a value is outside the ``min`` and/or
-  ``max`` range specified for orderable fields (e.g. numeric or date fields).
+  ``max`` range specified for ordered fields (e.g. numeric or date fields)
 * ``TooLong`` and ``TooShort``, used when a value is outside the
   ``min_length`` and/or ``max_length`` range specified for length-aware fields
-  (e.g. text or sequence fields).
+  (e.g. text or sequence fields)
 * ``InvalidValue``, used when a value is invalid, e.g. a non-ASCII character
-  passed to an ASCII field.
+  passed to an ASCII field
 * ``ConstraintNotSatisfied``, used when a ``constraint`` method returns
-  ``False``.
+  ``False``
 * ``WrongContainedType``, used if an object of an invalid type is added
   to a sequence (i.e. the type does not conform to the field's
-  ``value_type``).
-* ``NotUnique``, used if a uniqueness constraint is violated.
-* ``InvalidURI``, used for ``URI`` fields if the value is not a valid URI. 
-* ``InvalidId``, used for ``Id`` fields if the value is not a valid id.
+  ``value_type``)
+* ``NotUnique``, used if a uniqueness constraint is violated
+* ``InvalidURI``, used for ``URI`` fields if the value is not a valid URI
+* ``InvalidId``, used for ``Id`` fields if the value is not a valid id
 * ``InvalidDottedName``, used for ``DottedName`` fields if the value is not
-  a valid dotted name.
+  a valid dotted name
 
 Form base classes
 -----------------
