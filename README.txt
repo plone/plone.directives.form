@@ -56,6 +56,7 @@ package.
 
 Below is an example that exercises the various directives::
 
+    from z3c.form.interfaces import IEditForm
     from plone.directives import form
     from plone.app.z3cform.wysiwyg import WysiwygFieldWidget
 
@@ -101,10 +102,17 @@ Below is an example that exercises the various directives::
                 title=u"Dummy"
             )
         
+        form.omitted('edit_only')
+        form.no_omit(IEditForm, 'edit_only')
+        edit_only = schema.TextLine(
+                title = u'Only included on edit forms',
+            )
+        
         form.mode(secret='hidden')
+        form.mode(IEditForm, secret='input')
         secret = schema.TextLine(
                 title=u"Secret",
-                default=u"Secret stuff"
+                default=u"Secret stuff (except on edit forms)"
             )
         
         form.order_before(not_last='summary')
@@ -118,10 +126,10 @@ affect, but they could be placed anywhere in the interface body. All the
 directives can take multiple values, usually in the form
 ``fieldname='value'``.
 
-The ``omitted()`` and ``primary()`` directives take a list of field names
-instead. The ``widget()`` directive allows widgets to be set either as a
-dotted name, or using an imported field widget factory. The ``order_before()``
-directive has a  corresponding ``order_after()`` directive.
+The ``omitted()``, ``no_omit``, and ``primary()`` directives take a list of
+field names instead. The ``widget()`` directive allows widgets to be set either
+as a dotted name, or using an imported field widget factory. The
+``order_before()`` directive has a  corresponding ``order_after()`` directive.
 
 Value adapters
 --------------

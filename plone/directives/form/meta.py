@@ -48,6 +48,7 @@ from plone.directives.form.schema import (
         model,
         fieldset,
         omitted,
+        no_omit,
         mode,
         widget,
         order_before,
@@ -238,6 +239,7 @@ class FormSchemaGrokker(martian.InstanceGrokker):
     
     martian.directive(fieldset)
     martian.directive(omitted)
+    martian.directive(no_omit)
     martian.directive(mode)
     martian.directive(widget)
     martian.directive(order_before)
@@ -270,10 +272,12 @@ class FormSchemaGrokker(martian.InstanceGrokker):
                 
                 fieldNamesToCheck = []
                 
-                if key in (OMITTED_KEY, MODES_KEY, WIDGETS_KEY, READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY):
+                if key in (WIDGETS_KEY, READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY):
                     fieldNamesToCheck = tgv.keys()
                 elif key in (ORDER_KEY,):
                     fieldNamesToCheck = [t[0] for t in tgv]
+                elif key in (OMITTED_KEY, MODES_KEY):
+                    fieldNamesToCheck = [t[1] for t in tgv]
                 
                 for fieldName in fieldNamesToCheck:
                     if fieldName not in interface:

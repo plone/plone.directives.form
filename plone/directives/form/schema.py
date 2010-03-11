@@ -2,6 +2,7 @@ import martian
 
 from zope.interface import Interface
 from zope.interface.interface import TAGGED_DATA
+from zope.interface.interfaces import IInterface
 
 from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY, FIELDSETS_KEY
 from plone.supermodel.model import Fieldset
@@ -110,24 +111,41 @@ class omitted(martian.Directive):
     """
     
     scope = martian.CLASS
-    store = FormMetadataDictStorage()
+    store = FormMetadataListStorage()
     
     key = OMITTED_KEY
+    value = 'true'
     
     def factory(self, *args):
-        return dict([(a, 'true') for a in args])
+        if not args:
+            raise TypeError('The omitted directive expects at least one argument.')
+        form_interface = Interface
+        if IInterface.providedBy(args[0]):
+            form_interface = args[0]
+            args = args[1:]
+        return [(form_interface, field, self.value) for field in args]
+
+class no_omit(omitted):
+    """Directive used to prevent one or more fields from being omitted
+    """
+    value = 'false'
 
 class mode(martian.Directive):
     """Directive used to set the mode of one or more fields
     """
     
     scope = martian.CLASS
-    store = FormMetadataDictStorage()
+    store = FormMetadataListStorage()
     
     key = MODES_KEY
     
-    def factory(self, **kw):
-        return kw
+    def factory(self, *args, **kw):
+        if len(args) > 1:
+            raise TypeError('The mode directive expects 0 or 1 non-keyword arguments.')
+        form_interface = Interface
+        if args:
+            form_interface = args[0]
+        return [(form_interface, field, mode) for field, mode in kw.items()]
 
 class widget(martian.Directive):
     """Directive used to set the widget for one or more fields
@@ -204,6 +222,6 @@ class primary(martian.Directive):
     def factory(self, *args):
         return args
 
-__all__ = ('Schema', 'model', 'fieldset', 'omitted', 'mode', 'widget', 
-            'order_before', 'order_after', 'read_permission',
-            'write_permission', 'primary_field',)
+__all__ = ('Schema', 'model', 'fieldset', 'omitted', 'no_omit', 'mode',
+           'widget', 'order_before', 'order_after', 'read_permission',
+           'write_permission', 'primary_field',)

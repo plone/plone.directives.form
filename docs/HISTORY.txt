@@ -4,6 +4,15 @@ Changelog
 1.0b7 - unreleased
 ------------------
 
+* Add ``no_omit`` directive, so that fields that have been omitted can be
+  re-included again on for a more specific form interface.
+  [davisagli]
+
+* Accept a form interface as an optional positional argument for the ``mode``
+  and ``omitted`` directives, and store it in the tagged values using the new
+  format expected by plone.autoform.
+  [davisagli]
+
 * Add ``@form.error_message()`` decorator for registering custom error
   messages for errors and/or fields.
   [optilude]

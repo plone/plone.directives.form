@@ -20,6 +20,7 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # ...     form.model('myschema.xml')
 # ...     form.widget(body='plone.app.z3cform.wysiwyg.WysiwygFieldWidget',)
 # ...     form.omitted('debug_field', 'extra_info',)
+# ...     form.no_omit(IEditForm, 'debug_field', 'extra_info',)
 # ...     form.fieldset('details', label=u"Details", fields=('alpha', 'beta',))
 # ...     form.mode(secret_field='hidden',)
 # ...     form.order_before(field1='field2')
@@ -29,17 +30,17 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # ...     form.primary('field3')
 # 
 # Here, the 'body' field will use a WYSIWYG widget; 'debug_field' and
-# 'extra_info' will be omitted from forms; the fields 'alpha' and 'beta' will
-# go into a separate fieldset 'details'; the 'secret_field' field will be
-# rendered as a hidden field; 'field1' will be moved to go before 
-# 'field2' and 'field2' will be moved to go after 'field3'; field1 will only
-# be displayed on a display form or view if the user has the 'zope2.View'
-# permission; field2 will only be displayed on an input form if the user
-# has the 'cmf.ModifyPortalContent' permission; and 'field3' will be marked
-# as a primary field for marshaling purposes
+# 'extra_info' will be omitted from forms, except for form providing IEditForm;
+# the fields 'alpha' and 'beta' will go into a separate fieldset 'details';
+# the 'secret_field' field will be rendered as a hidden field; 'field1' will
+# be moved to go before 'field2' and 'field2' will be moved to go after
+# 'field3'; field1 will only be displayed on a display form or view if the user
+# has the 'zope2.View' permission; field2 will only be displayed on an input
+# form if the user has the 'cmf.ModifyPortalContent' permission; and 'field3'
+# will be marked as a primary field for marshaling purposes
 
 zope.deferredimport.defineFrom('plone.directives.form.schema',
-    'omitted', 'mode', 'widget', 'order_before', 'order_after', 
+    'omitted', 'no_omit', 'mode', 'widget', 'order_before', 'order_after',
     'read_permission', 'write_permission', 'primary',
 )
 

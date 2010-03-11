@@ -242,7 +242,7 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
         return super(DisplayForm, self).render()
     render.base_method = True
 
-# Diriectives
+# Directives
 
 class wrap(martian.Directive):
     """Directive used on a form class to determine if a form wrapper view

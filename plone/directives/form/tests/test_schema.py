@@ -37,8 +37,11 @@ class TestSchemaDirectives(unittest.TestCase):
         class IDummy(form.Schema):
             
             form.omitted('foo', 'bar')
+            form.omitted(form.Schema, 'qux')
+            form.no_omit(form.Schema, 'bar')
             form.widget(foo='some.dummy.Widget', baz='other.Widget')
             form.mode(bar='hidden')
+            form.mode(form.Schema, bar='input')
             form.order_before(baz='title')
             form.order_after(qux='title')
             form.read_permission(foo='zope2.View')
@@ -61,12 +64,15 @@ class TestSchemaDirectives(unittest.TestCase):
         self.assertEquals({'foo': 'some.dummy.Widget',
                            'baz': 'other.Widget'},
                           IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals({'foo': 'true',
-                           'bar': 'true'},
+        self.assertEquals([(Interface, 'foo', 'true'),
+                           (Interface, 'bar', 'true'),
+                           (form.Schema, 'qux', 'true'),
+                           (form.Schema, 'bar', 'false')],
                           IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals({'bar': 'hidden'},
+        self.assertEquals([(Interface, 'bar', 'hidden'),
+                           (form.Schema, 'bar', 'input')],
                           IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals([('baz', 'before', 'title',), 
+        self.assertEquals([('baz', 'before', 'title',),
                            ('qux', 'after', 'title')],
                           IDummy.queryTaggedValue(ORDER_KEY))
         self.assertEquals({'foo': 'zope2.View'},
@@ -151,10 +157,11 @@ class TestSchemaDirectives(unittest.TestCase):
         self.assertEquals({'foo': 'some.dummy.Widget',
                            'baz': 'other.Widget'},
                           IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals({'foo': 'true',
-                           'bar': 'true'},
+        self.assertEquals([(Interface, 'foo', 'true'),
+                           (Interface, 'bar', 'true')],
                           IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals({'bar': 'hidden', 'foo': 'display'},
+        self.assertEquals([(Interface, 'bar', 'hidden'),
+                           (Interface, 'foo', 'display')],
                           IDummy.queryTaggedValue(MODES_KEY))
         self.assertEquals([('baz', 'before', 'title'),
                            ('baz', 'after', 'qux'),
