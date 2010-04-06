@@ -4,6 +4,10 @@ Changelog
 1.0b7 - unreleased
 ------------------
 
+* Allow arbitrary extra parameters for the fieldset directive. This is useful
+  for extensions that want to tweak fieldset behaviour or rendering.
+  [wichert]
+  
 * Add ``no_omit`` directive, so that fields that have been omitted can be
   re-included again on for a more specific form interface.
   [davisagli]

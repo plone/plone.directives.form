@@ -104,7 +104,10 @@ class fieldset(martian.Directive):
     key = FIELDSETS_KEY
     
     def factory(self, name, label=None, description=None, fields=None):
-        return [Fieldset(name, label=label, description=description, fields=fields)]
+        fieldset=Fieldset(name, label=label, description=description, fields=fields)
+        for (key,value) in kw.items():
+            setattr(fieldset, key, value)
+        return [fieldset]
 
 class omitted(martian.Directive):
     """Directive used to omit one or more fields

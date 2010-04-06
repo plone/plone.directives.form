@@ -194,6 +194,13 @@ fieldsets. The same tagged value can be populated using a directive:
     >>> IGrouped.getTaggedValue(FIELDSETS_KEY)
     [<Fieldset 'default' of title, description>, <Fieldset 'metadata' of date>]
     
+Extra parameters, such as the layout parameter for the metadata fieldset, are
+accessible as attributes on the fieldset:
+
+    >>> metadata = IGrouped.getTaggedValue(FIELDSETS_KEY)[1]
+    >>> metadata.layout
+    'consensed'
+    
 Cleanup
 -------
 
