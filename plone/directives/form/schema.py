@@ -103,7 +103,7 @@ class fieldset(martian.Directive):
     
     key = FIELDSETS_KEY
     
-    def factory(self, name, label=None, description=None, fields=None):
+    def factory(self, name, label=None, description=None, fields=None, **kw):
         fieldset=Fieldset(name, label=label, description=description, fields=fields)
         for (key,value) in kw.items():
             setattr(fieldset, key, value)
