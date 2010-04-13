@@ -496,6 +496,20 @@ and all fieldsets and fields::
 
     <metal:block use-macro="context/@@ploneform-macros/titlelessform" />
 
+Troubleshooting
+---------------
+
+Forms are not found
+=====================
+
+When you try to access your form on the site, you'll get page not found (NotFound exception).
+
+* Make sure that you typed your form name correctly and it matches ``grok.name()``
+  or lowercased class name
+  
+* Make sure you have <include package="plone.directives.form" file="meta.zcml" />
+  or similar in configure.zcml of your add-on product
+
 .. _five.grok: http://pypi.python.org/pypi/five.grok
 .. _z3c.form: http://pypi.python.org/pypi/z3c.form
 .. _plone.z3cform: http://pypi.python.org/pypi/plone.z3cform
