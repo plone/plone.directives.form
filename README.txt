@@ -27,7 +27,11 @@ in your ``configure.zcml``::
 
     <include package="plone.directives.form" file="meta.zcml" />
     <include package="plone.directives.form" />
+    
+or if you declare dependencies in setup.py using install_requires::
 
+    <includeDependencies package="." />
+        
 Schemata loaded from XML
 ------------------------
 
@@ -371,12 +375,46 @@ The allowed directives are:
   for standard forms, ``cmf.ModifyPortalContent`` for edit forms, and
   ``cmf.AddPortalContent`` for add forms.
 * ``grok.layer()`` to specify a browser layer
-* ``grok.name()`` to set a different name
+* ``grok.name()`` to set a different name. By default your form will be 
+  available as view @@yourformclassnamelowercase, but you can use 
+  ``grok.name()`` to set name explicitly.
 * ``form.wrapped()`` to wrap the form in a layout wrapper view. You can pass
   an argument of ``True`` or ``False`` to enable or disable wrapping. If no
   argument is given, it defaults to ``True``. If omitted, the global default
   is used, which is to wrap in Zope 2.11 or earlier, and to not wrap in Zope
   2.12 or later
+  
+More complex example how to use Grok directives with a form::
+
+        from plone.directives import form
+        from Products.CMFCore.interfaces import ISiteRoot
+  
+        class CompanyCreationForm(form.SchemaForm):
+            """ A sample form how to "create companies". 
+            
+            """
+                      
+            # Which plone.directives.form.Schema subclass is used to define 
+            # fields for this form (not shown on this example)
+            schema = ICompanyCreationFormSchema
+            
+            # Permission required to view/submit the form
+            grok.require("cmf.ManagePortal")
+            
+            # The form does not care about the context object
+            # and  should not try to extract field value
+            # defaults out of it
+            ignoreContext = True
+            
+            # This form is available at the site root only
+            grok.context(ISiteRoot)
+        
+            # The form will be available in Plone site root only
+            # Use http://yourhost/@@create_company URL to access this form
+            grok.name("create_company")
+    
+    
+
 
 Each of the form base classes has a "schema" equivalent, which can be
 initialised with a ``schema`` attribute instead of the ``fields`` attribute.
