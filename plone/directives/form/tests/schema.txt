@@ -180,7 +180,7 @@ fieldsets. The same tagged value can be populated using a directive:
     >>> class IGrouped(form.Schema):
     ...
     ...     form.fieldset(u"default", label="Default", fields=['title', 'description'])
-    ...     form.fieldset(u"metadata", label="Metadata", fields=['date'])
+    ...     form.fieldset(u"metadata", label="Metadata", fields=['date'], layout='concise')
     ...     
     ...     title = zope.schema.TextLine(title=u"Title")
     ...     description = zope.schema.TextLine(title=u"Description")
@@ -199,7 +199,7 @@ accessible as attributes on the fieldset:
 
     >>> metadata = IGrouped.getTaggedValue(FIELDSETS_KEY)[1]
     >>> metadata.layout
-    'consensed'
+    'concise'
     
 Cleanup
 -------
