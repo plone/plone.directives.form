@@ -56,7 +56,7 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # ...     tags = schema.List(title=u"Tags",
 # ...                        value_type=schema.Choice(values=["Tag 1", "Tag 2", "Tag 3"]))
 # ... 
-# >>> alsoProvides(ITagging, form.IFormFieldProvider)
+# >>> alsoProvides(IMyBehavior, form.IFormFieldProvider)
 # 
 # When this behavior (and its associated factory) is registered, any type
 # where the behavior (that uses the standard Dexterity form support) is 
