@@ -35,105 +35,23 @@ or if you declare dependencies in setup.py using install_requires::
 Schemata loaded from XML
 ------------------------
 
-If you want to create a concrete interface, with a real module path, from
-a plone.supermodel XML file, you can do::
-
-    from plone.directives import form
-    class IMySchema(form.Schema):
-        form.model('myschema.xml')
-        
-The file will be loaded from the directory where the .py file for the
-interface is located, unless an absolute path is given.
-
-If the interface contains additional schema fields, they will add to and
-override fields defined in the XML file.
-
-See tests/schema.txt for more details.
+``plone.directives.form`` used to contain a directive for loading an XML-based
+schema model into a Python interface.  This directive has moved to ``plone.supermodel``, as ``plone.supermodel.model.load``.
 
 Form widget hints
 -----------------
 
-The `plone.autoform`_ package provides the ability to generate a form from a
-schema, using hints stored in tagged values on that schema to control form's
-layout and field widgets. Those hints can be set using directives in this
-package.
+``plone.directives.form`` used to contain a number of directives for generating
+a form from a schema, using hints stored in tagged values on that schema to
+control the form's layout and field widgets. These directives have now moved
+to other packages to avoid a dependency of Dexterity on grok.
 
-Below is an example that exercises the various directives::
+The ``fieldset`` and ``primary`` directives are now in 
+``plone.supermodel.model``.
 
-    from z3c.form.interfaces import IEditForm
-    from plone.directives import form
-    from plone.app.z3cform.wysiwyg import WysiwygFieldWidget
-
-    class IMySchema(form.Schema):
-    
-        # Add a new fieldset and put the 'footer' and 'dummy' fields in it.
-        # If the same fieldset is defined multiple times, the definitions
-        # will be merged, with the label from the first fieldset taking
-        # precedence.
-        
-        form.fieldset('extra', 
-                label=u"Extra info",
-                fields=['footer', 'dummy']
-            )
-        
-        title = schema.TextLine(
-                title=u"Title"
-            )
-        
-        summary = schema.Text(
-                title=u"Summary",
-                description=u"Summary of the body",
-                readonly=True
-            )
-        
-        form.widget(body='plone.app.z3cform.wysiwyg.WysiwygFieldWidget')
-        form.primary('body')
-        body = schema.Text(
-                title=u"Body text",
-                required=False,
-                default=u"Body text goes here"
-            )
-        
-        
-        form.widget(footer=WysiwygFieldWidget)
-        footer = schema.Text(
-                title=u"Footer text",
-                required=False
-            )
-        
-        form.omitted('dummy')
-        dummy = schema.Text(
-                title=u"Dummy"
-            )
-        
-        form.omitted('edit_only')
-        form.no_omit(IEditForm, 'edit_only')
-        edit_only = schema.TextLine(
-                title = u'Only included on edit forms',
-            )
-        
-        form.mode(secret='hidden')
-        form.mode(IEditForm, secret='input')
-        secret = schema.TextLine(
-                title=u"Secret",
-                default=u"Secret stuff (except on edit forms)"
-            )
-        
-        form.order_before(not_last='summary')
-        not_last = schema.TextLine(
-                title=u"Not last",
-            )
-        
-
-Here, we have placed the directives immediately before the fields they
-affect, but they could be placed anywhere in the interface body. All the
-directives can take multiple values, usually in the form
-``fieldname='value'``.
-
-The ``omitted()``, ``no_omit``, and ``primary()`` directives take a list of
-field names instead. The ``widget()`` directive allows widgets to be set either
-as a dotted name, or using an imported field widget factory. The
-``order_before()`` directive has a  corresponding ``order_after()`` directive.
+The ``omitted``, ``no_omit``, ``mode``, ``widget``, ``order_before``,
+``order_after``, ``read_permission``, and ``write_permission`` directives are
+now in ``plone.autoform.directives``.
 
 Value adapters
 --------------

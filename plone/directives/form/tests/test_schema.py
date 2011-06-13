@@ -1,3 +1,5 @@
+"""This module tests BBB for directives that were moved to plone.autoform."""
+
 import unittest
 import zope.app.testing.placelesssetup
 
@@ -7,10 +9,9 @@ import zope.component.testing
 from zope.testing import doctest
 
 from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY
+from plone.supermodel.model import Schema
 
-from plone.directives.form.schema import Schema, model
-
-from grokcore.component.testing import grok, grok_component
+from grokcore.component.testing import grok
 
 from plone.directives import form
 
@@ -19,14 +20,24 @@ from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KE
 
 from plone.rfc822.interfaces import IPrimaryField
 
-from martian.error import GrokImportError
-
 class DummyWidget(object):
     pass
 
 class TestSchemaDirectives(unittest.TestCase):
 
     def setUp(self):
+        configuration = """\
+        <configure xmlns="http://namespaces.zope.org/zope">
+        
+            <include package="Products.Five" file="configure.zcml" />
+            <include package="plone.directives.form" />
+        
+        </configure>
+        """
+        from StringIO import StringIO
+        from zope.configuration import xmlconfig
+        xmlconfig.xmlconfig(StringIO(configuration))
+        
         grok('plone.directives.form.meta')
 
     def tearDown(self):
@@ -52,15 +63,6 @@ class TestSchemaDirectives(unittest.TestCase):
             baz = zope.schema.TextLine(title=u"Baz")
             qux = zope.schema.TextLine(title=u"Qux")
             
-        self.assertEquals(None, IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-        
-        grok_component('IDummy', IDummy)
-        
         self.assertEquals({'foo': 'some.dummy.Widget',
                            'baz': 'other.Widget'},
                           IDummy.queryTaggedValue(WIDGETS_KEY))
@@ -90,36 +92,8 @@ class TestSchemaDirectives(unittest.TestCase):
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
             
-        self.assertEquals(None, IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-        
-        grok_component('IDummy', IDummy)
-        
         self.assertEquals({'foo': 'plone.directives.form.tests.test_schema.DummyWidget'},
                   IDummy.queryTaggedValue(WIDGETS_KEY))
-        
-    def test_schema_directives_extend_existing_tagged_values(self):
-        
-        class IDummy(form.Schema):
-            form.widget(foo='some.dummy.Widget')
-            
-            alpha = zope.schema.TextLine(title=u"Alpha")
-            foo = zope.schema.TextLine(title=u"Foo")
-            bar = zope.schema.TextLine(title=u"Bar")
-            baz = zope.schema.TextLine(title=u"Baz")
-            
-        IDummy.setTaggedValue(WIDGETS_KEY, {'alpha': 'some.Widget'})
-            
-        self.assertEquals({'alpha': 'some.Widget'}, IDummy.queryTaggedValue(WIDGETS_KEY))
-        
-        grok_component('IDummy', IDummy)
-        
-        self.assertEquals({'alpha': 'some.Widget', 'foo': 'some.dummy.Widget'},
-                          IDummy.queryTaggedValue(WIDGETS_KEY))
         
     def test_multiple_invocations(self):
         
@@ -145,15 +119,6 @@ class TestSchemaDirectives(unittest.TestCase):
             baz = zope.schema.TextLine(title=u"Baz")
             qux = zope.schema.TextLine(title=u"Qux")
             
-        self.assertEquals(None, IDummy.queryTaggedValue(WIDGETS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(OMITTED_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(MODES_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(ORDER_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
-        self.assertEquals(None, IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-        
-        grok_component('IDummy', IDummy)
-        
         self.assertEquals({'foo': 'some.dummy.Widget',
                            'baz': 'other.Widget'},
                           IDummy.queryTaggedValue(WIDGETS_KEY))
@@ -185,13 +150,6 @@ class TestSchemaDirectives(unittest.TestCase):
             baz = zope.schema.TextLine(title=u"Baz")
             qux = zope.schema.TextLine(title=u"Qux")
             
-        self.failIf(IPrimaryField.providedBy(IDummy['foo']))
-        self.failIf(IPrimaryField.providedBy(IDummy['bar']))
-        self.failIf(IPrimaryField.providedBy(IDummy['baz']))
-        self.failIf(IPrimaryField.providedBy(IDummy['qux']))
-        
-        grok_component('IDummy', IDummy)
-        
         self.failUnless(IPrimaryField.providedBy(IDummy['foo']))
         self.failUnless(IPrimaryField.providedBy(IDummy['bar']))
         self.failUnless(IPrimaryField.providedBy(IDummy['baz']))
@@ -199,21 +157,32 @@ class TestSchemaDirectives(unittest.TestCase):
     
     def test_misspelled_field(self):
         
-        class IFoo(form.Schema):
-            form.primary('fou')
-            foo = zope.schema.TextLine()
+        try:
+            class IFoo(form.Schema):
+                form.primary('fou')
+                foo = zope.schema.TextLine()
+        except ValueError:
+            pass
+        else:
+            self.fail('Did not raise ValueError')
         
-        class IBar(form.Schema):
-            form.order_before(ber='*')
-            bar = zope.schema.TextLine()
-        
-        class IBaz(form.Schema):
-            form.omitted('buz')
-            baz = zope.schema.TextLine()
-            
-        self.assertRaises(GrokImportError, grok_component, 'IFoo', IFoo)
-        self.assertRaises(GrokImportError, grok_component, 'IBar', IBar)
-        self.assertRaises(GrokImportError, grok_component, 'IBaz', IBaz)
+        try:
+            class IBar(form.Schema):
+                form.order_before(ber='*')
+                bar = zope.schema.TextLine()
+        except ValueError:
+            pass
+        else:
+            self.fail('Did not raise ValueError')
+
+        try:
+            class IBaz(form.Schema):
+                form.omitted('buz')
+                baz = zope.schema.TextLine()
+        except ValueError:
+            pass
+        else:
+            self.fail('Did not raise ValueError')
 
     def test_derived_class_fields(self):
         
@@ -224,8 +193,6 @@ class TestSchemaDirectives(unittest.TestCase):
             form.order_after(foo='bar')
             bar = zope.schema.TextLine()
         
-        grok_component('IBar', IBar)
-        
         self.assertEquals([('foo', 'after', 'bar'),], IBar.queryTaggedValue(ORDER_KEY))
     
     def test_schema_without_model_not_grokked(self):
@@ -233,30 +200,9 @@ class TestSchemaDirectives(unittest.TestCase):
         class IFoo(Schema):
             pass
             
-        self.assertEquals(True, grok_component('IFoo', IFoo))
         self.assertEquals(None, IFoo.queryTaggedValue(FILENAME_KEY))
         self.assertEquals(None, IFoo.queryTaggedValue(SCHEMA_NAME_KEY))
     
-    def test_non_schema_with_directives_raises_error(self):
-        
-        class IFoo(Interface):
-            form.order_before(foo='*')
-            foo = zope.schema.TextLine()
-        
-        class IBar(Interface):
-            form.primary('bar')
-            bar = zope.schema.TextLine()
-        
-        self.assertRaises(GrokImportError, grok_component, 'IFoo', IFoo)
-        self.assertRaises(GrokImportError, grok_component, 'IBar', IBar)
-        
-    def test_non_schema_not_grokked(self):
-        
-        class IFoo(Interface):
-            model('dummy.xml')
-            
-        self.assertEquals(False, grok_component('IFoo', IFoo))
-        
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(TestSchemaDirectives),
