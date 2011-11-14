@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '2.0dev'
+version = '1.1dev'
 
 setup(name='plone.directives.form',
       version=version,
@@ -27,10 +27,10 @@ setup(name='plone.directives.form',
           'setuptools',
           'zope.deferredimport',
           'five.grok>=1.0b2',
-          'plone.autoform>=2.0dev',
+          'plone.autoform>=1.1dev',
           'plone.z3cform>=0.6.0',
           'Products.statusmessages',
-          'plone.supermodel>=2.0dev',
+          'plone.supermodel>=1.1dev',
           'zope.i18nmessageid',
           'zope.publisher',
           'plone.rfc822',
