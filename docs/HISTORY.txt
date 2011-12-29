@@ -1,8 +1,30 @@
 Changelog
 =========
 
-1.0.1 - unreleased
-------------------
+1.1 - unreleased
+----------------
+
+* A number of schema directives were moved to other packages and reimplemented 
+  to not depend on grok.  The ``Schema`` class and the ``model``, ``fieldset``, 
+  and ``primary`` directives were moved to ``plone.supermodel.model``. The 
+  ``omitted``, ``no_omit``, ``mode``, ``widget``, ``order_before``, 
+  ``order_after``, ``read_permission``, and ``write_permission`` directives were 
+  moved to ``plone.autoform.directives``.
+  
+  For now the directives are still available under their old names in this
+  package, but they are deprecated and may be removed at some point.
+  
+  Some minor related changes:
+  
+  * Tagged values are now stored on schemas as soon as they are defined, rather
+    than when the schemas are grokked. Additional actions required by the
+    directives, if any, are performed at the end of ZCML configuration.
+  * Due to a bug in zope.interface, ``plone.supermodel.model.Schema`` must be
+    the `first` base class of any schema to which the directives should apply.
+    Also, unfortunately it is no longer possible to give an error if the schema
+    directives are called on an interface that is not a ``Schema``.
+  
+  [davisagli]
 
 1.0 - 2011-05-20
 ----------------

@@ -10,9 +10,16 @@ import zope.deferredimport
 # >>> class IMyType(form.Schema)
 # ...     form.model('myschema.xml')
 
-zope.deferredimport.defineFrom('plone.directives.form.schema',
-    'Schema', 'model', 'fieldset',
+zope.deferredimport.defineFrom('plone.supermodel.model',
+    'Schema', 'fieldset',
 )
+from plone.supermodel.model import load as model
+model # pyflakes
+try:
+    from plone.supermodel.model import primary
+except ImportError:
+    # 'primary' is only defined if plone.rfc822 is present
+    pass
 
 # Further directives for Schema to influence form rendering. For example:
 # 
@@ -39,10 +46,10 @@ zope.deferredimport.defineFrom('plone.directives.form.schema',
 # form if the user has the 'cmf.ModifyPortalContent' permission; and 'field3'
 # will be marked as a primary field for marshaling purposes
 
-zope.deferredimport.defineFrom('plone.directives.form.schema',
+zope.deferredimport.defineFrom('plone.autoform.directives',
     'omitted', 'no_omit', 'mode', 'widget', 'order_before', 'order_after',
-    'read_permission', 'write_permission', 'primary',
-)
+    'read_permission', 'write_permission',
+    )
 
 # Behavior interfaces can either be marked with or be adaptable to this
 # interface, in order to provide fields for the standard forms. For example:

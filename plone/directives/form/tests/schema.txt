@@ -2,6 +2,10 @@
 Loading plone.supermodel schemata from XML files
 ================================================
 
+BBB Note: The directives discussed in this document were moved to 
+plone.supermodel. This document remains for the time being to test backwards
+compatibility.
+
 plone.supermodel contains tools for reading and writing zope.schema-based
 interface definitions from/to XML.
 
@@ -88,31 +92,7 @@ We can now define a schema, using the directives defined in this package:
 Note: If the schema filename is not an absolute path, it will be found 
 relative to the module where the interface is defined.
 
-This class can be "grokked" to produce a proper schema interface. To do so,
-you must first ensure that the meta.zcml file from plone.supermodel is loaded.
-
-We simulate this here like so:
-
-    >>> from grokcore.component.testing import grok, grok_component
-    >>> grok('plone.directives.form.meta')
-
-Then, add the following in the configure.zcml file for the package where the
-interface is defined:
-
-    <configure xmlns="http://namespaces.zope.org/zope"
-               xmlns:grok="http://namespaces.zope.org/grok">
-
-        <grok:grok package="." />
-
-    </configure>
-
-Again, for the purposes of testing, we will simulate this with a helper 
-function from grokcore.component:
-
-    >>> grok_component('ITestContent', ITestContent)
-    True
-
-After grokking, the interface should have the fields of the default (unnamed)
+The interface should have the fields of the default (unnamed)
 schema:
 
     >>> from zope.schema import getFieldNamesInOrder
@@ -134,9 +114,6 @@ We can also use a different, named schema:
     ...     """Test metadata schema, built from XML
     ...     """
     ...     form.model(schema_filename, schema=u"metadata")
-
-    >>> grok_component('ITestMetadata', ITestMetadata)
-    True
 
     >>> getFieldNamesInOrder(ITestMetadata)
     ['created', 'creator']
@@ -162,9 +139,6 @@ former will override the latter.
     ...     title = zope.schema.TextLine(title=u"Title", default=u"Default title")
     ...     postscript = zope.schema.Text(title=u"Postscript")
     
-    >>> grok_component("ITestContentWithNewFields", ITestContentWithNewFields)
-    True
-
     >>> getFieldNamesInOrder(ITestContentWithNewFields)
     ['body', 'title', 'postscript']
     
@@ -180,19 +154,16 @@ fieldsets. The same tagged value can be populated using a directive:
     >>> class IGrouped(form.Schema):
     ...
     ...     form.fieldset(u"default", label="Default", fields=['title', 'description'])
-    ...     form.fieldset(u"metadata", label="Metadata", fields=['date'], layout='concise')
+    ...     form.fieldset(u"metadata", label="Metadata", fields=['publication_date'], layout='concise')
     ...     
     ...     title = zope.schema.TextLine(title=u"Title")
     ...     description = zope.schema.TextLine(title=u"Description")
     ...     
     ...     publication_date = zope.schema.Date(title=u"Publication date")
 
-    >>> grok_component("IGrouped", IGrouped)
-    True
-    
     >>> from plone.supermodel.interfaces import FIELDSETS_KEY
     >>> IGrouped.getTaggedValue(FIELDSETS_KEY)
-    [<Fieldset 'default' of title, description>, <Fieldset 'metadata' of date>]
+    [<Fieldset 'default' of title, description>, <Fieldset 'metadata' of publication_date>]
     
 Extra parameters, such as the layout parameter for the metadata fieldset, are
 accessible as attributes on the fieldset:

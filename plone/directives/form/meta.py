@@ -1,8 +1,4 @@
-import sys
-import os.path
-
 from zope.interface.interfaces import IInterface
-from zope.interface import alsoProvides
 
 import martian
 import grokcore.component
@@ -17,21 +13,6 @@ from plone.z3cform.layout import wrap_form
 from Products.Five.browser.metaconfigure import page as page_directive
 from zope.component.zcml import adapter as adapter_directive
 
-from plone.supermodel.interfaces import FILENAME_KEY, SCHEMA_NAME_KEY
-from plone.supermodel.utils import syncSchema
-from plone.supermodel import loadFile
-
-from plone.rfc822.interfaces import IPrimaryField
-
-from plone.autoform.interfaces import (
-        OMITTED_KEY,
-        READ_PERMISSIONS_KEY,
-        WRITE_PERMISSIONS_KEY,
-        WIDGETS_KEY,
-        MODES_KEY,
-        ORDER_KEY,
-    )
-
 from plone.directives.form.form import (
         GrokkedForm,
         Form,
@@ -43,21 +24,6 @@ from plone.directives.form.form import (
         wrap,
     )
 
-from plone.directives.form.schema import (
-        Schema,
-        model,
-        fieldset,
-        omitted,
-        no_omit,
-        mode,
-        widget,
-        order_before,
-        order_after,
-        read_permission,
-        write_permission,
-        primary,
-        TEMP_KEY,
-    )
 
 # Whether or not we need to wrap the grokked form using the layout form
 # wrapper. We do this by default in Zope < 2.12, but not in Zope 2.12+, where
@@ -184,144 +150,7 @@ class DisplayFormGrokker(martian.ClassGrokker):
             return True
         else:
             return False
-            
-# Schema grokkers
 
-class SupermodelSchemaGrokker(martian.InstanceGrokker):
-    """Grok a schema that is to be loaded from a plone.supermodel XML file
-    """
-    martian.component(Schema.__class__)
-    martian.directive(model)
-    
-    def execute(self, interface, config, **kw):
-        
-        if not interface.extends(Schema):
-           return False
-        
-        filename = interface.queryTaggedValue(FILENAME_KEY, None)
-        
-        if filename is not None:
-            
-            schema = interface.queryTaggedValue(SCHEMA_NAME_KEY, u"")
-            
-            moduleName = interface.__module__
-            module = sys.modules[moduleName]
-        
-            directory = moduleName
-        
-            if hasattr(module, '__path__'):
-                directory = module.__path__[0]
-            elif "." in moduleName:
-                parentModuleName = moduleName[:moduleName.rfind('.')]
-                directory = sys.modules[parentModuleName].__path__[0]
-        
-            directory = os.path.abspath(directory)
-            filename = os.path.abspath(os.path.join(directory, filename))
-            
-            # Let / act as path separator on all platforms
-            filename = filename.replace('/', os.path.sep)
-        
-            interface.setTaggedValue(FILENAME_KEY, filename)
-        
-            config.action(
-                discriminator=('plone.supermodel.schema', interface, filename, schema),
-                callable=scribble_schema,
-                args=(interface,),
-                order=9999,
-                )
-        
-        return True
-
-class FormSchemaGrokker(martian.InstanceGrokker):
-    """Grok form schema hints
-    """
-    martian.component(Schema.__class__)
-    
-    martian.directive(fieldset)
-    martian.directive(omitted)
-    martian.directive(no_omit)
-    martian.directive(mode)
-    martian.directive(widget)
-    martian.directive(order_before)
-    martian.directive(order_after)
-    martian.directive(read_permission)
-    martian.directive(write_permission)
-    martian.directive(primary)
-    
-    def execute(self, interface, config, **kw):
-        
-        directiveSupplied = interface.queryTaggedValue(TEMP_KEY, None)
-        primaryFields = interface.queryTaggedValue(primary.dotted_name(), [])
-        
-        if not interface.extends(Schema):
-            if directiveSupplied or primaryFields:
-                raise GrokImportError(
-                        u"You have used plone.directives.form directives "
-                        u"on the interface %s, but this does not derive from "
-                        u"plone.directives.form.Schema." % (interface.__identifier__,)
-                    )
-            return False
-        
-        # Copy from temporary to real value
-        if directiveSupplied is not None:
-            for key, tgv in directiveSupplied.items():
-                existingValue = interface.queryTaggedValue(key, None)
-                
-                # Validate that the value refers to something actually in 
-                # the interface
-                
-                fieldNamesToCheck = []
-                
-                if key in (WIDGETS_KEY, READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KEY):
-                    fieldNamesToCheck = tgv.keys()
-                elif key in (ORDER_KEY,):
-                    fieldNamesToCheck = [t[0] for t in tgv]
-                elif key in (OMITTED_KEY, MODES_KEY):
-                    fieldNamesToCheck = [t[1] for t in tgv]
-                
-                for fieldName in fieldNamesToCheck:
-                    if fieldName not in interface:
-                        raise GrokImportError(
-                                u"The directive %s applied to interface %s "
-                                u"refers to unknown field name %s" % (key, interface.__identifier__, fieldName)
-                            )
-                
-                if existingValue is not None:
-                    if type(existingValue) != type(tgv):
-                        # Don't overwrite if we have a different type
-                        continue
-                    elif isinstance(existingValue, list):
-                        existingValue.extend(tgv)
-                        tgv = existingValue
-                    elif isinstance(existingValue, dict):
-                        existingValue.update(tgv)
-                        tgv = existingValue
-                    
-                interface.setTaggedValue(key, tgv)
-        
-            interface.setTaggedValue(TEMP_KEY, None)
-        
-        for fieldName in primaryFields:
-            try:
-                alsoProvides(interface[fieldName], IPrimaryField)
-            except KeyError:
-                raise GrokImportError("Field %s set in primary() directive on %s not found" % (fieldName, interface,))
-        
-        return True
-
-def scribble_schema(interface):
-    
-    filename = interface.getTaggedValue(FILENAME_KEY)
-    schema = interface.queryTaggedValue(SCHEMA_NAME_KEY, u"")
-    
-    model = loadFile(filename)
-    
-    if schema not in model.schemata:
-        raise GrokImportError(
-                u"Schema '%s' specified for interface %s does not exist in %s." % 
-                    (schema, interface.__identifier__, filename,)) 
-    
-    syncSchema(model.schemata[schema], interface, overwrite=False)
 
 # Value adapter grokker
 
