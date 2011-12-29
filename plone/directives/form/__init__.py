@@ -11,10 +11,15 @@ import zope.deferredimport
 # ...     form.model('myschema.xml')
 
 zope.deferredimport.defineFrom('plone.supermodel.model',
-    'Schema', 'fieldset', 'primary',
+    'Schema', 'fieldset',
 )
 from plone.supermodel.model import load as model
 model # pyflakes
+try:
+    from plone.supermodel.model import primary
+except ImportError:
+    # 'primary' is only defined if plone.rfc822 is present
+    pass
 
 # Further directives for Schema to influence form rendering. For example:
 # 
