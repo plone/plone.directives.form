@@ -4,6 +4,10 @@ Changelog
 1.1 - unreleased
 ----------------
 
+* Fixes documentation mistake of documented ``form.wrapped()`` directive
+  which is in fact ``form.wrap()``
+  [romanofski]
+
 * A number of schema directives were moved to other packages and reimplemented 
   to not depend on grok.  The ``Schema`` class and the ``model``, ``fieldset``, 
   and ``primary`` directives were moved to ``plone.supermodel.model``. The 
