@@ -265,7 +265,7 @@ In Zope 2.10, the grokkers take care of wrapping the form in a
 `plone.z3cform`_ FormWrapper as well. In Zope 2.12 and later, there is no
 wrapper by default. If you want one (e.g. if you are using a custom template
 and you need it to work in both Zope 2.10 and 2.12), you can use the
-``form.wrapped()`` directive in the form class.
+``form.wrap()`` directive in the form class.
 
 The base classes can all be imported from ``plone.directives.form``, e.g::
 
@@ -296,7 +296,7 @@ The allowed directives are:
 * ``grok.name()`` to set a different name. By default your form will be 
   available as view @@yourformclassnamelowercase, but you can use 
   ``grok.name()`` to set name explicitly.
-* ``form.wrapped()`` to wrap the form in a layout wrapper view. You can pass
+* ``form.wrap()`` to wrap the form in a layout wrapper view. You can pass
   an argument of ``True`` or ``False`` to enable or disable wrapping. If no
   argument is given, it defaults to ``True``. If omitted, the global default
   is used, which is to wrap in Zope 2.11 or earlier, and to not wrap in Zope
