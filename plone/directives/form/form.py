@@ -19,7 +19,7 @@ import zope.publisher.publish
 
 from Products.statusmessages.interfaces import IStatusMessage
 
-_ = zope.i18nmessageid.MessageFactory(u'plone.directives.form')
+_ = zope.i18nmessageid.MessageFactory(u'plone.dexterity')
 
 # Form base classes
 

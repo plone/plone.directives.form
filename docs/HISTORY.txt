@@ -4,6 +4,10 @@ Changelog
 1.1 - unreleased
 ----------------
 
+* Change i18n domain to plone.dexterity to reuse the translations. plone.dexterity
+  already has all the strings needed.
+  [gaudenz]
+
 * Fixes documentation mistake of documented ``form.wrapped()`` directive
   which is in fact ``form.wrap()``
   [romanofski]
