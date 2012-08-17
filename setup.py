@@ -3,6 +3,9 @@ import os
 
 version = '1.1dev'
 
+tests_require = ['zope.app.testing']
+
+
 setup(name='plone.directives.form',
       version=version,
       description="Grok-like directives configuring forms",
@@ -36,6 +39,8 @@ setup(name='plone.directives.form',
           'plone.rfc822',
           # -*- Extra requirements: -*-
       ],
+      tests_require=tests_require,
+      extras_require={'test': tests_require},
       entry_points="""
       # -*- Entry points: -*-
       """,
