@@ -240,7 +240,7 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
         if template is not None:
             return self.template.render(self)
         return super(DisplayForm, self).render()
-    render.base_method = True
+    render.base_method = False
 
 # Directives
 

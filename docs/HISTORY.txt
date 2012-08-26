@@ -1,8 +1,12 @@
 Changelog
 =========
 
-1.1 - unreleased
+2.0 - unreleased
 ----------------
+
+* Update to work with grokcore.view >= 2.2. This generally means that this
+  package is no longer compatible with Plone < 4.3.
+  [davisagli]
 
 * Change i18n domain to plone.dexterity to reuse the translations. plone.dexterity
   already has all the strings needed.

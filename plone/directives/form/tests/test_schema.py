@@ -1,7 +1,6 @@
 """This module tests BBB for directives that were moved to plone.autoform."""
 
 import unittest
-import zope.app.testing.placelesssetup
 
 from zope.interface import Interface
 
@@ -207,6 +206,6 @@ def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(TestSchemaDirectives),
         doctest.DocFileSuite('schema.txt',
-            setUp=zope.app.testing.placelesssetup.setUp,
-            tearDown=zope.app.testing.placelesssetup.tearDown),
+            setUp=zope.component.testing.setUp,
+            tearDown=zope.component.testing.tearDown),
         ))

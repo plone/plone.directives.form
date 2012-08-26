@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.1dev'
+version = '2.0dev'
 
-tests_require = ['zope.app.testing']
+tests_require = []
 
 
 setup(name='plone.directives.form',
@@ -30,6 +30,7 @@ setup(name='plone.directives.form',
           'setuptools',
           'zope.deferredimport',
           'five.grok>=1.0b2',
+          'grokcore.view>=2.2',
           'plone.autoform>=1.2dev',
           'plone.z3cform>=0.6.0',
           'Products.statusmessages',

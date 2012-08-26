@@ -3,6 +3,7 @@ from zope.interface.interfaces import IInterface
 import martian
 import grokcore.component
 import grokcore.view
+import grokcore.view.meta.views
 
 from martian.error import GrokImportError
 
@@ -41,6 +42,16 @@ except:
 
 def default_view_name(factory, module=None, **data):
     return factory.__name__.lower()
+
+
+class FormTemplateGrokker(grokcore.view.meta.views.TemplateGrokker):
+    martian.component(GrokkedForm)
+
+    def has_no_render(self, factory):
+        # Unlike the view template grokker, we are happy with the base class
+        # version
+        return getattr(factory, 'render', None) is None
+
 
 class FormGrokker(martian.ClassGrokker):
     """Wrap standard z3c.form forms with plone.z3cform.layout and register
@@ -87,14 +98,6 @@ class FormGrokker(martian.ClassGrokker):
                           "to set up your fields manually, use a non-schema form "
                           "base class instead." % (form.__name__))
         
-        templates = form.module_info.getAnnotation('grok.templates', None)
-        if templates is not None:
-            config.action(
-                discriminator=None,
-                callable=self.checkTemplates,
-                args=(templates, form.module_info, form)
-                )
-        
         form.__view_name__ = name
         
         if wrap is None:
@@ -118,20 +121,6 @@ class FormGrokker(martian.ClassGrokker):
         
         return True
     
-    def checkTemplates(self, templates, module_info, factory):
-        
-        def has_render(factory):
-            render = getattr(factory, 'render', None)
-            base_method = getattr(render, 'base_method', False)
-            return render and not base_method
-        
-        def has_no_render(factory):
-            # Unlike the view grokker, we are happy with the base class
-            # version
-            return getattr(factory, 'render', None) is None
-        
-        templates.checkTemplates(module_info, factory, 'view',
-                                 has_render, has_no_render)
 
 class DisplayFormGrokker(martian.ClassGrokker):
     """Let a display form use its context as an implicit schema, if the
