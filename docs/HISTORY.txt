@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1 - unreleased
+1.1 (2013-08-14)
 ----------------
 
 * Change i18n domain to plone.dexterity to reuse the translations. plone.dexterity
