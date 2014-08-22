@@ -26,19 +26,19 @@ _ = zope.i18nmessageid.MessageFactory(u'plone.dexterity')
 class GrokkedForm(object):
     """Mixin class for all grokked forms, which provides grok.View-like
     semantics for template association, static resources, etc.
-    
+
     Do not use directly.
     """
     martian.baseclass()
-    
+
     # Emulate grokcore.view.View
-    
+
     def __init__(self, context, request):
         super(GrokkedForm, self).__init__(context, request)
-        
+
         # Set the view __name__
         self.__name__ = getattr(self, '__view_name__', None)
-        
+
         # Set up the view.static resource directory reference
         if getattr(self, 'module_info', None) is not None:
             self.static = zope.component.queryAdapter(
@@ -48,7 +48,7 @@ class GrokkedForm(object):
                 )
         else:
             self.static = None
-    
+
     def render(self):
         # Render a grok-style templat if we have one
         if (
@@ -59,11 +59,11 @@ class GrokkedForm(object):
         else:
             return super(GrokkedForm, self).render()
     render.base_method = True
-    
+
     @property
     def response(self):
         return self.request.response
-    
+
     def _render_template(self):
         return self.template.render(self)
 
@@ -77,7 +77,7 @@ class GrokkedForm(object):
 
     def namespace(self):
         return {}
-    
+
     def url(self, obj=None, name=None, data=None):
         """Return string for the URL based on the obj and name. The data
         argument is used to form a CGI query string.
@@ -107,18 +107,18 @@ class GrokkedForm(object):
 
     def redirect(self, url):
         return self.request.response.redirect(url)
-    
+
     # BBB: makes the form have the most important properties that were
     # exposed by the wrapper view
-    
+
     @property
     def form_instance(self):
         return self
-    
+
     @property
     def form(self):
         return self.__class__
-    
+
 # Page forms
 
 class Form(GrokkedForm, z3c.form.form.Form):
@@ -130,7 +130,7 @@ class SchemaForm(plone.autoform.form.AutoExtensibleForm, Form):
     """A basic extensible form
     """
     martian.baseclass()
-    
+
     schema = None # Must be set by subclass
 
 # Add forms
@@ -139,27 +139,27 @@ class AddForm(GrokkedForm, z3c.form.form.AddForm):
     """A standard add form.
     """
     martian.baseclass()
-    
+
     immediate_view = None
-    
+
     def __init__(self, context, request):
         super(AddForm, self).__init__(context, request)
         self.request['disable_border'] = True
-    
+
     def render(self):
         if self._finishedAdd:
             self.request.response.redirect(self.nextURL())
             return ""
         return super(AddForm, self).render()
-    
+
     def nextURL(self):
         if self.immediate_view is not None:
             return self.immediate_view
         else:
             return self.context.absolute_url()
-    
+
     # Buttons
-    
+
     @z3c.form.button.buttonAndHandler(_('Save'), name='save')
     def handleAdd(self, action):
         data, errors = self.extractData()
@@ -171,11 +171,11 @@ class AddForm(GrokkedForm, z3c.form.form.AddForm):
             # mark only as finished if we get the new object
             self._finishedAdd = True
             IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
-    
+
     @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
     def handleCancel(self, action):
         IStatusMessage(self.request).addStatusMessage(_(u"Add New Item operation cancelled"), "info")
-        self.request.response.redirect(self.nextURL()) 
+        self.request.response.redirect(self.nextURL())
 
     def updateActions(self):
         super(AddForm, self).updateActions()
@@ -186,7 +186,7 @@ class SchemaAddForm(plone.autoform.form.AutoExtensibleForm, AddForm):
     """An extensible add form.
     """
     martian.baseclass()
-    
+
     schema = None # Must be set by subclass
 
 # Edit forms
@@ -195,7 +195,7 @@ class EditForm(GrokkedForm, z3c.form.form.EditForm):
     """A standard edit form
     """
     martian.baseclass()
-    
+
     @z3c.form.button.buttonAndHandler(_(u'Save'), name='save')
     def handleApply(self, action):
         data, errors = self.extractData()
@@ -205,12 +205,12 @@ class EditForm(GrokkedForm, z3c.form.form.EditForm):
         self.applyChanges(data)
         IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
         self.request.response.redirect(self.context.absolute_url())
-    
+
     @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
     def handleCancel(self, action):
         IStatusMessage(self.request).addStatusMessage(_(u"Edit cancelled"), "info")
-        self.request.response.redirect(self.context.absolute_url()) 
-    
+        self.request.response.redirect(self.context.absolute_url())
+
     def updateActions(self):
         super(EditForm, self).updateActions()
         self.actions["save"].addClass("context")
@@ -220,7 +220,7 @@ class SchemaEditForm(plone.autoform.form.AutoExtensibleForm, EditForm):
     """An extensible edit form
     """
     martian.baseclass()
-    
+
     schema = None # Must be set by subclass
 
 # Display forms
@@ -230,11 +230,11 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
     goodness of a grok.View, including automatic templates.
     """
     martian.baseclass()
-    
+
     def __init__(self, context, request):
         plone.autoform.view.WidgetsView.__init__(self, context, request)
-        five.grok.View.__init__(self, context, request)    
-    
+        five.grok.View.__init__(self, context, request)
+
     def render(self):
         template = getattr(self, 'template', None)
         if template is not None:
@@ -250,9 +250,9 @@ class wrap(martian.Directive):
     """
     scope = martian.CLASS
     store = martian.ONCE
-    
+
     def factory(self, flag=True):
         return flag
 
-__all__ = ('Form', 'SchemaForm', 'AddForm', 'SchemaAddForm', 
+__all__ = ('Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
             'EditForm', 'SchemaEditForm', 'DisplayForm', 'wrap',)

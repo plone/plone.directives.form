@@ -22,7 +22,7 @@ except ImportError:
     pass
 
 # Further directives for Schema to influence form rendering. For example:
-# 
+#
 # >>> class IMyType(form.Schema)
 # ...     form.model('myschema.xml')
 # ...     form.widget(body='plone.app.z3cform.wysiwyg.WysiwygFieldWidget',)
@@ -35,7 +35,7 @@ except ImportError:
 # ...     form.read_permission(field1='zope2.View')
 # ...     form.write_permission(field2='cmf.ModifyPortalContent')
 # ...     form.primary('field3')
-# 
+#
 # Here, the 'body' field will use a WYSIWYG widget; 'debug_field' and
 # 'extra_info' will be omitted from forms, except for form providing IEditForm;
 # the fields 'alpha' and 'beta' will go into a separate fieldset 'details';
@@ -53,20 +53,20 @@ zope.deferredimport.defineFrom('plone.autoform.directives',
 
 # Behavior interfaces can either be marked with or be adaptable to this
 # interface, in order to provide fields for the standard forms. For example:
-# 
+#
 # >>> class IMyBehavior(form.Schema):
 # ...     form.order_before(enabled='description')
 # ...     form.fieldset('tagging', label=u"Tagging", fields=['enabled', 'tags'])
-# ...     
+# ...
 # ...     enabled = schema.Bool(title=u"Tagging enabled", default=True)
-# ...     
+# ...
 # ...     tags = schema.List(title=u"Tags",
 # ...                        value_type=schema.Choice(values=["Tag 1", "Tag 2", "Tag 3"]))
-# ... 
+# ...
 # >>> alsoProvides(IMyBehavior, form.IFormFieldProvider)
-# 
+#
 # When this behavior (and its associated factory) is registered, any type
-# where the behavior (that uses the standard Dexterity form support) is 
+# where the behavior (that uses the standard Dexterity form support) is
 # enabled will have the appropriate form fields inserted.
 
 zope.deferredimport.defineFrom('plone.autoform.interfaces',
@@ -91,11 +91,11 @@ zope.deferredimport.defineFrom('plone.directives.form.form',
 
 # z3c.form value adapters for computed values: default_value (for a widget),
 # widget_label and button_label.
-# 
+#
 # >>> @default_value(field=IMySchema['some_field'])
 # ... def get_default(data):
 # ...     return data.context.Title().lower()
-# 
+#
 # See docstrings in value.py for more.
 
 zope.deferredimport.defineFrom('plone.directives.form.value',
@@ -103,7 +103,7 @@ zope.deferredimport.defineFrom('plone.directives.form.value',
 )
 
 # z3c.form widget validator adapters
-# 
+#
 # >>> @validator(field=IMySchema['some_field'])
 # ... def validateField(value):
 # ...     if value == 42:
@@ -114,7 +114,7 @@ zope.deferredimport.defineFrom('plone.directives.form.validator',
 )
 
 # z3c.form error message computed value adapters
-# 
+#
 # >>> @error_message(error=TooSmall, field=IMySchema['some_field'])
 # ... def errorMessage(value):
 # ...     return u"The given value (%d) is too small" % value

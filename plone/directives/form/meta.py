@@ -58,37 +58,37 @@ class FormGrokker(martian.ClassGrokker):
     them as views, using the same directives as other views. Note that
     templates are *not* automatically assigned.
     """
-    
+
     martian.component(GrokkedForm)
-    
+
     martian.directive(grokcore.component.context)
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, get_default=default_view_name)
     martian.directive(grokcore.security.require, name='permission', default=None)
     martian.directive(wrap, default=None)
-    
+
     default_permissions = {
         EditForm          : 'cmf.ModifyPortalContent',
         SchemaEditForm    : 'cmf.ModifyPortalContent',
         AddForm           : 'cmf.AddPortalContent',
         SchemaAddForm     : 'cmf.AddPortalContent',
     }
-    
+
     permission_fallback = 'zope2.View'
-    
+
     def grok(self, name, form, module_info, **kw):
         # save the module info so that we can look for templates later
         form.module_info = module_info
         return super(FormGrokker, self).grok(name, form, module_info, **kw)
-    
+
     def execute(self, form, config, context, layer, name, permission, wrap, **kw):
-        
+
         if permission is None:
             permission = self.default_permissions.get(form.__class__, self.permission_fallback)
 
         if issubclass(form, AutoExtensibleForm):
             if getattr(form, 'schema', None) is None:
-                
+
                 if issubclass(form, (EditForm, Form)) and IInterface.providedBy(context):
                     form.schema = context
                 else:
@@ -97,19 +97,19 @@ class FormGrokker(martian.ClassGrokker):
                           "defining a schema interface for the form. If you want "
                           "to set up your fields manually, use a non-schema form "
                           "base class instead." % (form.__name__))
-        
+
         form.__view_name__ = name
-        
+
         if wrap is None:
             wrap = DEFAULT_WRAP
-        
+
         # Only use the wrapper view if we are on Zope < 2.12
         if wrap:
             factory = wrap_form(form)
             factory.__view_name__ = name
         else:
             factory = form
-        
+
         page_directive(
                 config,
                 name=name,
@@ -118,21 +118,21 @@ class FormGrokker(martian.ClassGrokker):
                 layer=layer,
                 class_=factory
             )
-        
+
         return True
-    
+
 
 class DisplayFormGrokker(martian.ClassGrokker):
     """Let a display form use its context as an implicit schema, if the
     context has been set.
     """
-    
+
     martian.component(DisplayForm)
-    
+
     martian.directive(grokcore.component.context)
-    
+
     def execute(self, factory, config, context, **kw):
-        
+
         if getattr(factory, 'schema', None) is None and \
                 IInterface.providedBy(context):
             factory.schema = context
@@ -144,7 +144,7 @@ class DisplayFormGrokker(martian.ClassGrokker):
 # Value adapter grokker
 
 class ValueAdapterGrokker(martian.GlobalGrokker):
-    
+
     def grok(self, name, module, module_info, config, **kw):
         # context = grokcore.component.context.bind().get(module=module)
         adapters = module_info.getAnnotation('form.value_adapters', [])
@@ -158,7 +158,7 @@ class ValueAdapterGrokker(martian.GlobalGrokker):
 # Validator adapter grokker
 
 class ValidatorAdapterGrokker(martian.GlobalGrokker):
-    
+
     def grok(self, name, module, module_info, config, **kw):
         # context = grokcore.component.context.bind().get(module=module)
         adapters = module_info.getAnnotation('form.validator_adapters', [])
@@ -171,7 +171,7 @@ class ValidatorAdapterGrokker(martian.GlobalGrokker):
 # Error message adapter grokker
 
 class ErrorMessageAdapterGrokker(martian.GlobalGrokker):
-    
+
     def grok(self, name, module, module_info, config, **kw):
         # context = grokcore.component.context.bind().get(module=module)
         adapters = module_info.getAnnotation('form.error_message_adapters', [])

@@ -27,25 +27,25 @@ class TestSchemaDirectives(unittest.TestCase):
     def setUp(self):
         configuration = """\
         <configure xmlns="http://namespaces.zope.org/zope">
-        
+
             <include package="Products.Five" file="configure.zcml" />
             <include package="plone.directives.form" />
-        
+
         </configure>
         """
         from StringIO import StringIO
         from zope.configuration import xmlconfig
         xmlconfig.xmlconfig(StringIO(configuration))
-        
+
         grok('plone.directives.form.meta')
 
     def tearDown(self):
         zope.component.testing.tearDown()
-    
+
     def test_schema_directives_store_tagged_values(self):
-        
+
         class IDummy(form.Schema):
-            
+
             form.omitted('foo', 'bar')
             form.omitted(form.Schema, 'qux')
             form.no_omit(form.Schema, 'bar')
@@ -56,12 +56,12 @@ class TestSchemaDirectives(unittest.TestCase):
             form.order_after(qux='title')
             form.read_permission(foo='zope2.View')
             form.write_permission(foo='cmf.ModifyPortalContent')
-            
+
             foo = zope.schema.TextLine(title=u"Foo")
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
             qux = zope.schema.TextLine(title=u"Qux")
-            
+
         self.assertEquals({'foo': 'some.dummy.Widget',
                            'baz': 'other.Widget'},
                           IDummy.queryTaggedValue(WIDGETS_KEY))
@@ -80,24 +80,24 @@ class TestSchemaDirectives(unittest.TestCase):
                           IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
         self.assertEquals({'foo': 'cmf.ModifyPortalContent'},
                           IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-                                  
+
     def test_widget_supports_instances_and_strings(self):
-        
+
         class IDummy(form.Schema):
-            
+
             form.widget(foo=DummyWidget)
-            
+
             foo = zope.schema.TextLine(title=u"Foo")
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
-            
+
         self.assertEquals({'foo': 'plone.directives.form.tests.test_schema.DummyWidget'},
                   IDummy.queryTaggedValue(WIDGETS_KEY))
-        
+
     def test_multiple_invocations(self):
-        
+
         class IDummy(form.Schema):
-            
+
             form.omitted('foo')
             form.omitted('bar')
             form.widget(foo='some.dummy.Widget')
@@ -112,12 +112,12 @@ class TestSchemaDirectives(unittest.TestCase):
             form.read_permission(baz='random.Permission')
             form.write_permission(foo='cmf.ModifyPortalContent')
             form.write_permission(baz='another.Permission')
-            
+
             foo = zope.schema.TextLine(title=u"Foo")
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
             qux = zope.schema.TextLine(title=u"Qux")
-            
+
         self.assertEquals({'foo': 'some.dummy.Widget',
                            'baz': 'other.Widget'},
                           IDummy.queryTaggedValue(WIDGETS_KEY))
@@ -136,26 +136,26 @@ class TestSchemaDirectives(unittest.TestCase):
                           IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
         self.assertEquals({'foo': 'cmf.ModifyPortalContent', 'baz': 'another.Permission'},
                           IDummy.queryTaggedValue(WRITE_PERMISSIONS_KEY))
-    
+
     def test_primary_field(self):
-        
+
         class IDummy(form.Schema):
-            
+
             form.primary('foo')
             form.primary('bar', 'baz')
-            
+
             foo = zope.schema.TextLine(title=u"Foo")
             bar = zope.schema.TextLine(title=u"Bar")
             baz = zope.schema.TextLine(title=u"Baz")
             qux = zope.schema.TextLine(title=u"Qux")
-            
+
         self.failUnless(IPrimaryField.providedBy(IDummy['foo']))
         self.failUnless(IPrimaryField.providedBy(IDummy['bar']))
         self.failUnless(IPrimaryField.providedBy(IDummy['baz']))
         self.failIf(IPrimaryField.providedBy(IDummy['qux']))
-    
+
     def test_misspelled_field(self):
-        
+
         try:
             class IFoo(form.Schema):
                 form.primary('fou')
@@ -164,7 +164,7 @@ class TestSchemaDirectives(unittest.TestCase):
             pass
         else:
             self.fail('Did not raise ValueError')
-        
+
         try:
             class IBar(form.Schema):
                 form.order_before(ber='*')
@@ -184,24 +184,24 @@ class TestSchemaDirectives(unittest.TestCase):
             self.fail('Did not raise ValueError')
 
     def test_derived_class_fields(self):
-        
+
         class IFoo(form.Schema):
             foo = zope.schema.TextLine()
-        
+
         class IBar(IFoo):
             form.order_after(foo='bar')
             bar = zope.schema.TextLine()
-        
+
         self.assertEquals([('foo', 'after', 'bar'),], IBar.queryTaggedValue(ORDER_KEY))
-    
+
     def test_schema_without_model_not_grokked(self):
-        
+
         class IFoo(Schema):
             pass
-            
+
         self.assertEquals(None, IFoo.queryTaggedValue(FILENAME_KEY))
         self.assertEquals(None, IFoo.queryTaggedValue(SCHEMA_NAME_KEY))
-    
+
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(TestSchemaDirectives),

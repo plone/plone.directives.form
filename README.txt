@@ -27,11 +27,11 @@ in your ``configure.zcml``::
 
     <include package="plone.directives.form" file="meta.zcml" />
     <include package="plone.directives.form" />
-    
+
 or if you declare dependencies in setup.py using install_requires::
 
     <includeDependencies package="." />
-        
+
 Schemata loaded from XML
 ------------------------
 
@@ -46,7 +46,7 @@ a form from a schema, using hints stored in tagged values on that schema to
 control the form's layout and field widgets. These directives have now moved
 to other packages to avoid a dependency of Dexterity on grok.
 
-The ``fieldset`` and ``primary`` directives are now in 
+The ``fieldset`` and ``primary`` directives are now in
 ``plone.supermodel.model``.
 
 The ``omitted``, ``no_omit``, ``mode``, ``widget``, ``order_before``,
@@ -63,15 +63,15 @@ computed values. For example::
 
     from plone.directives import form
     from zope import schema
-    
+
     class IMySchema(form.Schema):
-    
+
         title = schema.TextLine(title=u"Title")
 
     @form.default_value(field=IMySchema['title'])
     def default_title(data):
         return data.context.suggested_title
-        
+
 The decorator takes one or more discriminators. The available discriminators
 for ``default_value`` are:
 
@@ -93,7 +93,7 @@ field
 
 widget
     The widget type (e.g. an interface).
-    
+
 You must specify either ``field`` or ``widget``. The object passed to the
 decorated function has an attribute for each discriminator.
 
@@ -102,12 +102,12 @@ There are two more decorators:
 widget_label
   Provide a dynamic label for a widget. Takes the same discriminators as the
   ``default_value`` decorator.
-  
+
 button_label -- Provide a dynamic label for a button. Takes parameters
   content (alias context), request (alias layer), form (alias view),
   manager and button.
 
-Please note the rather unfortunate differences in naming between the button 
+Please note the rather unfortunate differences in naming between the button
 descriptors (content vs. context, form vs. view) and the widget ones. The
 descriptor will accept the same names, but the data object passed to the
 function will only contain the names as defined in z3c.form, so be careful.
@@ -130,11 +130,11 @@ widget validator, called ``@form.validator()``::
 
     from plone.directives import form
     from zope import schema
-    
+
     class IMySchema(form.Schema):
-    
+
         title = schema.TextLine(title=u"Title")
-    
+
     @form.validator(field=IMySchema['title'])
     def validateTitle(value):
         if value == value.upper():
@@ -184,13 +184,13 @@ decorator. For example::
 
     from plone.directives import form
     from zope import schema
-    
+
     from zope.schema.interfaces import TooShort
-    
+
     class IMySchema(form.Schema):
-    
+
         title = schema.TextLine(title=u"Title", min_length=2)
-    
+
     @form.error_message(error=TooShort, field=IMySchema['title'])
     def titleTooShort(value):
         return u"The title '%s' is too short" % value
@@ -272,13 +272,13 @@ The base classes can all be imported from ``plone.directives.form``, e.g::
     from five import grok
     from plone.directives import form, button
     from z3c.form import field
-    
+
     class MyForm(form.Form):
         grok.context(ISomeContext)
         grok.require('zope2.View')
-        
+
         fields = field.Fields(IMyFormSchema)
-        
+
         @button.buttonAndHandler(u'Submit')
         def handleApply(self, action):
             data, errors = self.extractData()
@@ -293,61 +293,61 @@ The allowed directives are:
   for standard forms, ``cmf.ModifyPortalContent`` for edit forms, and
   ``cmf.AddPortalContent`` for add forms.
 * ``grok.layer()`` to specify a browser layer
-* ``grok.name()`` to set a different name. By default your form will be 
-  available as view @@yourformclassnamelowercase, but you can use 
+* ``grok.name()`` to set a different name. By default your form will be
+  available as view @@yourformclassnamelowercase, but you can use
   ``grok.name()`` to set name explicitly.
 * ``form.wrap()`` to wrap the form in a layout wrapper view. You can pass
   an argument of ``True`` or ``False`` to enable or disable wrapping. If no
   argument is given, it defaults to ``True``. If omitted, the global default
   is used, which is to wrap in Zope 2.11 or earlier, and to not wrap in Zope
   2.12 or later
-  
+
 More complex example how to use Grok directives with a form::
 
         from plone.directives import form
         from Products.CMFCore.interfaces import ISiteRoot
-  
+
         class CompanyCreationForm(form.SchemaForm):
-            """ A sample form how to "create companies". 
-            
+            """ A sample form how to "create companies".
+
             """
-                      
-            # Which plone.directives.form.Schema subclass is used to define 
+
+            # Which plone.directives.form.Schema subclass is used to define
             # fields for this form (not shown on this example)
             schema = ICompanyCreationFormSchema
-            
+
             # Permission required to view/submit the form
             grok.require("cmf.ManagePortal")
-            
+
             # The form does not care about the context object
             # and  should not try to extract field value
             # defaults out of it
             ignoreContext = True
-            
+
             # This form is available at the site root only
             grok.context(ISiteRoot)
-        
+
             # The form will be available in Plone site root only
             # Use http://yourhost/@@create_company URL to access this form
             grok.name("create_company")
-    
-    
+
+
 
 
 Each of the form base classes has a "schema" equivalent, which can be
 initialised with a ``schema`` attribute instead of the ``fields`` attribute.
 These forms use `plone.autoform`_'s ``AutoExtensibleForm`` as a base class,
 allowing schema hints as shown above to be processed::
-    
+
     from plone.directives import form
     from z3c.form import field
-    
+
     class MyForm(form.SchemaForm):
         grok.context(ISomeContext)
         grok.require('zope2.View')
-        
+
         schema = IMySchema
-        
+
         @button.buttonAndHandler(u'Submit')
         def handleApply(self, action):
             data, errors = self.extractData()
@@ -390,24 +390,24 @@ DisplayForm
     that is initialised with display widgets. See `plone.autoform`_'s
     ``WidgetsView`` for more details.
 
-All of the grokked form base classes above support associating a custom 
+All of the grokked form base classes above support associating a custom
 template with the form. This uses the same semantics as ``grok.View``. See
 `grokcore.view`_ for details, but briefly:
 
-* If you want to completely customise rendering, you can override the 
+* If you want to completely customise rendering, you can override the
   ``render()`` method.
 * If you want to use a page template to render a form called ``MyForm`` in
   the module ``my.package.forms``, create a directory inside ``my.package``
   called ``forms_templates`` (the prefix should match the module name),
   and place a file there called ``myform.pt``.
-* If you do neither, the default form template will be used, as is the 
+* If you do neither, the default form template will be used, as is the
   standard behaviour in z3c.form.
 
 Note that the automatically associated form template can use ``grok.View``
 methods, such as ``view.url()`` and ``view.redirect()``, which are defined
 in the grokked form base classes.
 
-Also note that you can use the view ``@@ploneform-macros`` from 
+Also note that you can use the view ``@@ploneform-macros`` from
 `plone.app.z3cform`_ if you want to use some of the standard form markup.
 For example, the ``titlelessform`` macro will render the ``<form >`` element
 and all fieldsets and fields::
@@ -424,7 +424,7 @@ When you try to access your form on the site, you'll get page not found (NotFoun
 
 * Make sure that you typed your form name correctly and it matches ``grok.name()``
   or lowercased class name
-  
+
 * Make sure you have <include package="plone.directives.form" file="meta.zcml" />
   or similar in configure.zcml of your add-on product
 

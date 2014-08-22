@@ -23,7 +23,7 @@ class IFolder2(Interface):
     pass
 
 class IDummySchema(Interface):
-    
+
     field1 = schema.Int(title=u"Field one", min=10, required=True)
     field2 = schema.Int(title=u"Field two", min=10, required=False)
 
@@ -34,12 +34,12 @@ class Folder2(object):
     implements(IFolder2)
 
 class DummyForm(Form):
-    
+
     ignoreContext = True
     fields = Fields(IDummySchema)
 
 class DummySecondaryForm(Form):
-    
+
     ignoreContext = True
     fields = Fields(IDummySchema)
 
@@ -60,48 +60,48 @@ class TestErrorMessageDecorator(unittest.TestCase):
 
     def setUp(self):
         setupFormDefaults()
-        
+
         grok('plone.directives.form.meta')
         grok('plone.directives.form.tests.test_error')
-        
+
     def tearDown(self):
         zope.component.testing.tearDown()
-        
+
     def test_error_message_no_error(self):
-        
+
         form = DummyForm(Folder(), TestRequest(form={'form.widgets.field1': u"10"}))
         form.update()
-        
+
         data, errors = form.extractData()
         self.assertEquals(0, len(errors))
-    
+
     def test_error_message_field_only(self):
-        
+
         form = DummyForm(Folder(), TestRequest(form={'form.widgets.field1': u"5"}))
         form.update()
-        
+
         data, errors = form.extractData()
         self.assertEquals(1, len(errors))
         self.assertEquals(u"Field 1 error", errors[0].message)
 
     def test_error_message_field_view(self):
-        
+
         form = DummySecondaryForm(Folder(), TestRequest(form={'form.widgets.field1': u"5"}))
         form.update()
-        
+
         data, errors = form.extractData()
         self.assertEquals(1, len(errors))
         self.assertEquals(u"Field 1 error second form", errors[0].message)
-    
+
     def test_error_message_field_context(self):
-        
+
         form = DummyForm(Folder2(), TestRequest(form={'form.widgets.field1': u"5"}))
         form.update()
-        
+
         data, errors = form.extractData()
         self.assertEquals(1, len(errors))
         self.assertEquals(u"Field 1 error context", errors[0].message)
-    
+
     def test_method_not_changed(self):
         self.assertEquals(u"Field 1 error", field1Error(None))
 
