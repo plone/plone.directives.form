@@ -10,12 +10,13 @@ setup(name='plone.directives.form',
       description="Grok-like directives configuring forms",
       long_description=(open("README.rst").read() + "\n" +
                         open("CHANGES.rst").read()),
-      # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
+      # Get more strings from
+      # https://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
-        "Framework :: Plone",
-        "Programming Language :: Python",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        ],
+          "Framework :: Plone",
+          "Programming Language :: Python",
+          "Topic :: Software Development :: Libraries :: Python Modules",
+          ],
       keywords='grok plone dexterity form content',
       author='Martin Aspeli',
       author_email='optilude@gmail.com',
