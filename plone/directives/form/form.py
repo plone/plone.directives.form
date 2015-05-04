@@ -23,6 +23,7 @@ _ = zope.i18nmessageid.MessageFactory(u'plone.dexterity')
 
 # Form base classes
 
+
 class GrokkedForm(object):
     """Mixin class for all grokked forms, which provides grok.View-like
     semantics for template association, static resources, etc.
@@ -45,7 +46,7 @@ class GrokkedForm(object):
                 self.request,
                 zope.interface.Interface,
                 name=self.module_info.package_dotted_name
-                )
+            )
         else:
             self.static = None
 
@@ -121,19 +122,22 @@ class GrokkedForm(object):
 
 # Page forms
 
+
 class Form(GrokkedForm, z3c.form.form.Form):
     """A basic form.
     """
     martian.baseclass()
+
 
 class SchemaForm(plone.autoform.form.AutoExtensibleForm, Form):
     """A basic extensible form
     """
     martian.baseclass()
 
-    schema = None # Must be set by subclass
+    schema = None  # Must be set by subclass
 
 # Add forms
+
 
 class AddForm(GrokkedForm, z3c.form.form.AddForm):
     """A standard add form.
@@ -170,11 +174,17 @@ class AddForm(GrokkedForm, z3c.form.form.AddForm):
         if obj is not None:
             # mark only as finished if we get the new object
             self._finishedAdd = True
-            IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
+            IStatusMessage(
+                self.request).addStatusMessage(
+                _(u"Changes saved"),
+                "info")
 
     @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
     def handleCancel(self, action):
-        IStatusMessage(self.request).addStatusMessage(_(u"Add New Item operation cancelled"), "info")
+        IStatusMessage(
+            self.request).addStatusMessage(
+            _(u"Add New Item operation cancelled"),
+            "info")
         self.request.response.redirect(self.nextURL())
 
     def updateActions(self):
@@ -182,14 +192,16 @@ class AddForm(GrokkedForm, z3c.form.form.AddForm):
         self.actions["save"].addClass("context")
         self.actions["cancel"].addClass("standalone")
 
+
 class SchemaAddForm(plone.autoform.form.AutoExtensibleForm, AddForm):
     """An extensible add form.
     """
     martian.baseclass()
 
-    schema = None # Must be set by subclass
+    schema = None  # Must be set by subclass
 
 # Edit forms
+
 
 class EditForm(GrokkedForm, z3c.form.form.EditForm):
     """A standard edit form
@@ -203,12 +215,18 @@ class EditForm(GrokkedForm, z3c.form.form.EditForm):
             self.status = self.formErrorsMessage
             return
         self.applyChanges(data)
-        IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
+        IStatusMessage(
+            self.request).addStatusMessage(
+            _(u"Changes saved"),
+            "info")
         self.request.response.redirect(self.context.absolute_url())
 
     @z3c.form.button.buttonAndHandler(_(u'Cancel'), name='cancel')
     def handleCancel(self, action):
-        IStatusMessage(self.request).addStatusMessage(_(u"Edit cancelled"), "info")
+        IStatusMessage(
+            self.request).addStatusMessage(
+            _(u"Edit cancelled"),
+            "info")
         self.request.response.redirect(self.context.absolute_url())
 
     def updateActions(self):
@@ -216,14 +234,16 @@ class EditForm(GrokkedForm, z3c.form.form.EditForm):
         self.actions["save"].addClass("context")
         self.actions["cancel"].addClass("standalone")
 
+
 class SchemaEditForm(plone.autoform.form.AutoExtensibleForm, EditForm):
     """An extensible edit form
     """
     martian.baseclass()
 
-    schema = None # Must be set by subclass
+    schema = None  # Must be set by subclass
 
 # Display forms
+
 
 class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
     """A view that knows about field widgets, but otherwise has all the
@@ -244,6 +264,7 @@ class DisplayForm(plone.autoform.view.WidgetsView, five.grok.View):
 
 # Directives
 
+
 class wrap(martian.Directive):
     """Directive used on a form class to determine if a form wrapper view
     should be used.
@@ -255,4 +276,4 @@ class wrap(martian.Directive):
         return flag
 
 __all__ = ('Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
-            'EditForm', 'SchemaEditForm', 'DisplayForm', 'wrap',)
+           'EditForm', 'SchemaEditForm', 'DisplayForm', 'wrap',)

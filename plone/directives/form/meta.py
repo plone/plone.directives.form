@@ -15,15 +15,15 @@ from Products.Five.browser.metaconfigure import page as page_directive
 from zope.component.zcml import adapter as adapter_directive
 
 from plone.directives.form.form import (
-        GrokkedForm,
-        Form,
-        EditForm,
-        SchemaEditForm,
-        AddForm,
-        SchemaAddForm,
-        DisplayForm,
-        wrap,
-    )
+    GrokkedForm,
+    Form,
+    EditForm,
+    SchemaEditForm,
+    AddForm,
+    SchemaAddForm,
+    DisplayForm,
+    wrap,
+)
 
 
 # Whether or not we need to wrap the grokked form using the layout form
@@ -39,6 +39,7 @@ except:
     pass
 
 # Form grokkers
+
 
 def default_view_name(factory, module=None, **data):
     return factory.__name__.lower()
@@ -64,14 +65,17 @@ class FormGrokker(martian.ClassGrokker):
     martian.directive(grokcore.component.context)
     martian.directive(grokcore.view.layer, default=IDefaultBrowserLayer)
     martian.directive(grokcore.component.name, get_default=default_view_name)
-    martian.directive(grokcore.security.require, name='permission', default=None)
+    martian.directive(
+        grokcore.security.require,
+        name='permission',
+        default=None)
     martian.directive(wrap, default=None)
 
     default_permissions = {
-        EditForm          : 'cmf.ModifyPortalContent',
-        SchemaEditForm    : 'cmf.ModifyPortalContent',
-        AddForm           : 'cmf.AddPortalContent',
-        SchemaAddForm     : 'cmf.AddPortalContent',
+        EditForm: 'cmf.ModifyPortalContent',
+        SchemaEditForm: 'cmf.ModifyPortalContent',
+        AddForm: 'cmf.AddPortalContent',
+        SchemaAddForm: 'cmf.AddPortalContent',
     }
 
     permission_fallback = 'zope2.View'
@@ -81,10 +85,13 @@ class FormGrokker(martian.ClassGrokker):
         form.module_info = module_info
         return super(FormGrokker, self).grok(name, form, module_info, **kw)
 
-    def execute(self, form, config, context, layer, name, permission, wrap, **kw):
+    def execute(
+            self, form, config, context, layer, name, permission, wrap, **kw):
 
         if permission is None:
-            permission = self.default_permissions.get(form.__class__, self.permission_fallback)
+            permission = self.default_permissions.get(
+                form.__class__,
+                self.permission_fallback)
 
         if issubclass(form, AutoExtensibleForm):
             if getattr(form, 'schema', None) is None:
@@ -94,9 +101,9 @@ class FormGrokker(martian.ClassGrokker):
                 else:
                     raise GrokImportError(
                         u"The schema form %s must have a 'schema' attribute "
-                          "defining a schema interface for the form. If you want "
-                          "to set up your fields manually, use a non-schema form "
-                          "base class instead." % (form.__name__))
+                        "defining a schema interface for the form. If you want "
+                        "to set up your fields manually, use a non-schema form "
+                        "base class instead." % (form.__name__))
 
         form.__view_name__ = name
 
@@ -111,13 +118,13 @@ class FormGrokker(martian.ClassGrokker):
             factory = form
 
         page_directive(
-                config,
-                name=name,
-                permission=permission,
-                for_=context,
-                layer=layer,
-                class_=factory
-            )
+            config,
+            name=name,
+            permission=permission,
+            for_=context,
+            layer=layer,
+            class_=factory
+        )
 
         return True
 
@@ -150,12 +157,13 @@ class ValueAdapterGrokker(martian.GlobalGrokker):
         adapters = module_info.getAnnotation('form.value_adapters', [])
         for factory, name in adapters:
             adapter_directive(config,
-                factory=(factory,),
-                name=name
-            )
+                              factory=(factory,),
+                              name=name
+                              )
         return True
 
 # Validator adapter grokker
+
 
 class ValidatorAdapterGrokker(martian.GlobalGrokker):
 
@@ -164,11 +172,12 @@ class ValidatorAdapterGrokker(martian.GlobalGrokker):
         adapters = module_info.getAnnotation('form.validator_adapters', [])
         for factory in adapters:
             adapter_directive(config,
-                factory=(factory,),
-            )
+                              factory=(factory,),
+                              )
         return True
 
 # Error message adapter grokker
+
 
 class ErrorMessageAdapterGrokker(martian.GlobalGrokker):
 
@@ -177,7 +186,7 @@ class ErrorMessageAdapterGrokker(martian.GlobalGrokker):
         adapters = module_info.getAnnotation('form.error_message_adapters', [])
         for factory in adapters:
             adapter_directive(config,
-                factory=(factory,),
-                name=u"message",
-            )
+                              factory=(factory,),
+                              name=u"message",
+                              )
         return True

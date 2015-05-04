@@ -14,11 +14,13 @@ class FormMetadataDictStorage(object):
         tags.setdefault(directive.key, {}).update(value)
 
     def get(self, directive, component, default):
-        return component.queryTaggedValue(TEMP_KEY, {}).get(directive.key, default)
+        return component.queryTaggedValue(
+            TEMP_KEY, {}).get(directive.key, default)
 
     def setattr(self, context, directive, value):
         tags = context.queryTaggedValue(TEMP_KEY, {})
         tags.setdefault(directive.key, {}).update(value)
+
 
 class FormMetadataListStorage(object):
     """Store a list value in the TEMP_KEY tagged value, under the key in
@@ -30,7 +32,8 @@ class FormMetadataListStorage(object):
         tags.setdefault(directive.key, []).extend(value)
 
     def get(self, directive, component, default):
-        return component.queryTaggedValue(TEMP_KEY, {}).get(directive.key, default)
+        return component.queryTaggedValue(
+            TEMP_KEY, {}).get(directive.key, default)
 
     def setattr(self, context, directive, value):
         tags = context.queryTaggedValue(TEMP_KEY, {})

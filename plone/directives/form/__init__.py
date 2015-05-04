@@ -10,11 +10,12 @@ import zope.deferredimport
 # >>> class IMyType(form.Schema)
 # ...     form.model('myschema.xml')
 
-zope.deferredimport.defineFrom('plone.supermodel.model',
+zope.deferredimport.defineFrom(
+    'plone.supermodel.model',
     'Schema', 'fieldset',
 )
 from plone.supermodel.model import load as model
-model # pyflakes
+model  # pyflakes
 try:
     from plone.supermodel.model import primary
 except ImportError:
@@ -46,10 +47,11 @@ except ImportError:
 # form if the user has the 'cmf.ModifyPortalContent' permission; and 'field3'
 # will be marked as a primary field for marshaling purposes
 
-zope.deferredimport.defineFrom('plone.autoform.directives',
+zope.deferredimport.defineFrom(
+    'plone.autoform.directives',
     'omitted', 'no_omit', 'mode', 'widget', 'order_before', 'order_after',
     'read_permission', 'write_permission',
-    )
+)
 
 # Behavior interfaces can either be marked with or be adaptable to this
 # interface, in order to provide fields for the standard forms. For example:
@@ -69,7 +71,8 @@ zope.deferredimport.defineFrom('plone.autoform.directives',
 # where the behavior (that uses the standard Dexterity form support) is
 # enabled will have the appropriate form fields inserted.
 
-zope.deferredimport.defineFrom('plone.autoform.interfaces',
+zope.deferredimport.defineFrom(
+    'plone.autoform.interfaces',
     'IFormFieldProvider',
 )
 
@@ -83,10 +86,11 @@ zope.deferredimport.defineFrom('plone.autoform.interfaces',
 # ...     grok.context(IMyContext)
 # ...     grok.require('zope2.View')
 
-zope.deferredimport.defineFrom('plone.directives.form.form',
+zope.deferredimport.defineFrom(
+    'plone.directives.form.form',
     'Form', 'SchemaForm', 'AddForm', 'SchemaAddForm',
-        'EditForm', 'SchemaEditForm', 'DisplayForm',
-        'wrap',
+    'EditForm', 'SchemaEditForm', 'DisplayForm',
+    'wrap',
 )
 
 # z3c.form value adapters for computed values: default_value (for a widget),
@@ -98,7 +102,8 @@ zope.deferredimport.defineFrom('plone.directives.form.form',
 #
 # See docstrings in value.py for more.
 
-zope.deferredimport.defineFrom('plone.directives.form.value',
+zope.deferredimport.defineFrom(
+    'plone.directives.form.value',
     'default_value', 'widget_label', 'button_label',
 )
 
@@ -109,7 +114,8 @@ zope.deferredimport.defineFrom('plone.directives.form.value',
 # ...     if value == 42:
 # ...         raise Invalid(u"We don't like this number")
 
-zope.deferredimport.defineFrom('plone.directives.form.validator',
+zope.deferredimport.defineFrom(
+    'plone.directives.form.validator',
     'validator',
 )
 
@@ -119,6 +125,7 @@ zope.deferredimport.defineFrom('plone.directives.form.validator',
 # ... def errorMessage(value):
 # ...     return u"The given value (%d) is too small" % value
 
-zope.deferredimport.defineFrom('plone.directives.form.error',
+zope.deferredimport.defineFrom(
+    'plone.directives.form.error',
     'error_message',
 )

@@ -6,15 +6,24 @@ from z3c.form.interfaces import IValidator
 from z3c.form.validator import SimpleFieldValidator
 from z3c.form.validator import WidgetValidatorDiscriminators
 
+
 class DecoratedValidator(SimpleFieldValidator):
 
     def __init__(self, fn, context, request, view, field, widget):
-        super(DecoratedValidator, self).__init__(context, request, view, field, widget)
+        super(
+            DecoratedValidator,
+            self).__init__(
+            context,
+            request,
+            view,
+            field,
+            widget)
         self.fn = fn
 
     def validate(self, value):
         super(DecoratedValidator, self).validate(value)
         self.fn(value)
+
 
 class validator(object):
     """Decorator for functions to be registered as validators
@@ -27,7 +36,8 @@ class validator(object):
 
         @implementer(IValidator)
         def factory(context, request, view, field, widget):
-            return DecoratedValidator(fn, context, request, view, field, widget)
+            return DecoratedValidator(
+                fn, context, request, view, field, widget)
 
         WidgetValidatorDiscriminators(factory, **self.discriminators)
 

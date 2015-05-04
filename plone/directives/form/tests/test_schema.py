@@ -19,8 +19,10 @@ from plone.autoform.interfaces import READ_PERMISSIONS_KEY, WRITE_PERMISSIONS_KE
 
 from plone.rfc822.interfaces import IPrimaryField
 
+
 class DummyWidget(object):
     pass
+
 
 class TestSchemaDirectives(unittest.TestCase):
 
@@ -92,7 +94,7 @@ class TestSchemaDirectives(unittest.TestCase):
             baz = zope.schema.TextLine(title=u"Baz")
 
         self.assertEquals({'foo': 'plone.directives.form.tests.test_schema.DummyWidget'},
-                  IDummy.queryTaggedValue(WIDGETS_KEY))
+                          IDummy.queryTaggedValue(WIDGETS_KEY))
 
     def test_multiple_invocations(self):
 
@@ -130,7 +132,7 @@ class TestSchemaDirectives(unittest.TestCase):
         self.assertEquals([('baz', 'before', 'title'),
                            ('baz', 'after', 'qux'),
                            ('qux', 'after', 'bar'),
-                           ('foo', 'before', 'body'),],
+                           ('foo', 'before', 'body'), ],
                           IDummy.queryTaggedValue(ORDER_KEY))
         self.assertEquals({'foo': 'zope2.View', 'bar': 'zope2.View', 'baz': 'random.Permission'},
                           IDummy.queryTaggedValue(READ_PERMISSIONS_KEY))
@@ -192,7 +194,8 @@ class TestSchemaDirectives(unittest.TestCase):
             form.order_after(foo='bar')
             bar = zope.schema.TextLine()
 
-        self.assertEquals([('foo', 'after', 'bar'),], IBar.queryTaggedValue(ORDER_KEY))
+        self.assertEquals(
+            [('foo', 'after', 'bar'), ], IBar.queryTaggedValue(ORDER_KEY))
 
     def test_schema_without_model_not_grokked(self):
 
@@ -202,10 +205,11 @@ class TestSchemaDirectives(unittest.TestCase):
         self.assertEquals(None, IFoo.queryTaggedValue(FILENAME_KEY))
         self.assertEquals(None, IFoo.queryTaggedValue(SCHEMA_NAME_KEY))
 
+
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(TestSchemaDirectives),
         doctest.DocFileSuite('schema.txt',
-            setUp=zope.component.testing.setUp,
-            tearDown=zope.component.testing.tearDown),
-        ))
+                             setUp=zope.component.testing.setUp,
+                             tearDown=zope.component.testing.tearDown),
+    ))

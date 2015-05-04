@@ -20,20 +20,25 @@ from five import grok
 
 import plone.directives.form.meta
 
+
 class ILayer(Interface):
     pass
+
 
 class IDummy(Interface):
     pass
 
+
 class IDummy2(Interface):
     pass
+
 
 class Dummy(object):
     implements(IDummy)
 
     def absolute_url(self):
         return "http://dummy"
+
 
 class Request(TestRequest):
 
@@ -43,7 +48,10 @@ class Request(TestRequest):
 
 # ignore warnings about unassociated templates, since the way we do the tests
 # mean the association happens after the module is grokked
-warnings.filterwarnings("ignore", ".*unassociated template.*testformwithtemplate.*")
+warnings.filterwarnings(
+    "ignore",
+    ".*unassociated template.*testformwithtemplate.*")
+
 
 class TestFormDirectives(unittest.TestCase):
 
@@ -64,8 +72,12 @@ class TestFormDirectives(unittest.TestCase):
         grokcore.component.testing.grok('grokcore.view.templatereg')
 
         provideUtility(Permission('zope2.View'), name='zope2.View')
-        provideUtility(Permission('cmf.ModifyPortalContent'), name='cmf.ModifyPortalContent')
-        provideUtility(Permission('cmf.AddPortalContent'), name='cmf.AddPortalContent')
+        provideUtility(
+            Permission('cmf.ModifyPortalContent'),
+            name='cmf.ModifyPortalContent')
+        provideUtility(
+            Permission('cmf.AddPortalContent'),
+            name='cmf.AddPortalContent')
 
     def tearDown(self):
         zope.component.testing.tearDown()
@@ -332,7 +344,9 @@ class TestFormDirectives(unittest.TestCase):
 
         grokcore.component.testing.grok(__name__)
 
-        grokcore.component.testing.grok_component('TestFormWithTemplate', TestFormWithTemplate)
+        grokcore.component.testing.grok_component(
+            'TestFormWithTemplate',
+            TestFormWithTemplate)
 
         context = Dummy()
         request = Request()
@@ -340,7 +354,9 @@ class TestFormDirectives(unittest.TestCase):
         view = getMultiAdapter((context, request), name="testformwithtemplate")
 
         self.failUnless(issubclass(view.form, TestFormWithTemplate))
-        self.failUnless(grokcore.view.interfaces.ITemplate.providedBy(view.template))
+        self.failUnless(
+            grokcore.view.interfaces.ITemplate.providedBy(
+                view.template))
 
     def test_template_and_render(self):
 
@@ -353,8 +369,9 @@ class TestFormDirectives(unittest.TestCase):
         grokcore.component.testing.grok(__name__)
 
         self.assertRaises(ConfigurationExecutionError,
-            grokcore.component.testing.grok_component,
-            'TestFormWithTemplate', TestFormWithTemplate)
+                          grokcore.component.testing.grok_component,
+                          'TestFormWithTemplate', TestFormWithTemplate)
+
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

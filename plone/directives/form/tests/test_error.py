@@ -16,40 +16,52 @@ from z3c.form.testing import setupFormDefaults, TestRequest
 
 from plone.directives import form
 
+
 class IFolder(Interface):
     pass
 
+
 class IFolder2(Interface):
     pass
+
 
 class IDummySchema(Interface):
 
     field1 = schema.Int(title=u"Field one", min=10, required=True)
     field2 = schema.Int(title=u"Field two", min=10, required=False)
 
+
 class Folder(object):
     implements(IFolder)
 
+
 class Folder2(object):
     implements(IFolder2)
+
 
 class DummyForm(Form):
 
     ignoreContext = True
     fields = Fields(IDummySchema)
 
+
 class DummySecondaryForm(Form):
 
     ignoreContext = True
     fields = Fields(IDummySchema)
 
-@form.error_message(error=TooSmall, field=IDummySchema['field1'], form=DummySecondaryForm)
+
+@form.error_message(
+    error=TooSmall, field=IDummySchema['field1'], form=DummySecondaryForm)
 def field1ErrorSecondForm(value):
     return u"Field 1 error second form"
 
-@form.error_message(error=TooSmall, field=IDummySchema['field1'], content=IFolder2)
+
+@form.error_message(
+    error=TooSmall, field=IDummySchema['field1'], content=IFolder2)
 def field1ErrorContext(value):
     return u"Field 1 error context"
+
 
 @form.error_message(error=TooSmall, field=IDummySchema['field1'])
 def field1Error(value):
@@ -69,7 +81,11 @@ class TestErrorMessageDecorator(unittest.TestCase):
 
     def test_error_message_no_error(self):
 
-        form = DummyForm(Folder(), TestRequest(form={'form.widgets.field1': u"10"}))
+        form = DummyForm(
+            Folder(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"10"}))
         form.update()
 
         data, errors = form.extractData()
@@ -77,7 +93,11 @@ class TestErrorMessageDecorator(unittest.TestCase):
 
     def test_error_message_field_only(self):
 
-        form = DummyForm(Folder(), TestRequest(form={'form.widgets.field1': u"5"}))
+        form = DummyForm(
+            Folder(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"5"}))
         form.update()
 
         data, errors = form.extractData()
@@ -86,7 +106,11 @@ class TestErrorMessageDecorator(unittest.TestCase):
 
     def test_error_message_field_view(self):
 
-        form = DummySecondaryForm(Folder(), TestRequest(form={'form.widgets.field1': u"5"}))
+        form = DummySecondaryForm(
+            Folder(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"5"}))
         form.update()
 
         data, errors = form.extractData()
@@ -95,7 +119,11 @@ class TestErrorMessageDecorator(unittest.TestCase):
 
     def test_error_message_field_context(self):
 
-        form = DummyForm(Folder2(), TestRequest(form={'form.widgets.field1': u"5"}))
+        form = DummyForm(
+            Folder2(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"5"}))
         form.update()
 
         data, errors = form.extractData()
@@ -104,6 +132,7 @@ class TestErrorMessageDecorator(unittest.TestCase):
 
     def test_method_not_changed(self):
         self.assertEquals(u"Field 1 error", field1Error(None))
+
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

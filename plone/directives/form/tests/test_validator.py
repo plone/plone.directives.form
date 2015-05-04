@@ -14,47 +14,58 @@ from z3c.form.testing import setupFormDefaults, TestRequest
 
 from plone.directives import form
 
+
 class IFolder(Interface):
     pass
 
+
 class IFolder2(Interface):
     pass
+
 
 class IDummySchema(Interface):
 
     field1 = schema.TextLine(title=u"Field one", required=True)
     field2 = schema.TextLine(title=u"Field two", required=False)
 
+
 class Folder(object):
     implements(IFolder)
 
+
 class Folder2(object):
     implements(IFolder2)
+
 
 class DummyForm(Form):
 
     ignoreContext = True
     fields = Fields(IDummySchema)
 
+
 class DummySecondaryForm(Form):
 
     ignoreContext = True
     fields = Fields(IDummySchema)
+
 
 @form.validator(field=IDummySchema['field1'])
 def validate_field1(value):
     if value == 'fail':
         raise schema.ValidationError(u"Field 1, form 1")
 
+
 @form.validator(field=IDummySchema['field1'], view=DummySecondaryForm)
 def validate_field1_secondary(value):
     if value == 'fail':
         raise schema.ValidationError(u"Field 1, form 2")
 
+
 @form.validator(field=IDummySchema['field1'], context=IFolder2)
 def validate_field1_context(value):
     if value == 'fail':
         raise schema.ValidationError(u"Field 1, context")
+
 
 class TestValidatorDecorator(unittest.TestCase):
 
@@ -78,7 +89,11 @@ class TestValidatorDecorator(unittest.TestCase):
 
     def test_validator_no_error(self):
 
-        form = DummyForm(Folder(), TestRequest(form={'form.widgets.field1': u"Value"}))
+        form = DummyForm(
+            Folder(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"Value"}))
         form.update()
 
         data, errors = form.extractData()
@@ -86,7 +101,11 @@ class TestValidatorDecorator(unittest.TestCase):
 
     def test_validator_field_only(self):
 
-        form = DummyForm(Folder(), TestRequest(form={'form.widgets.field1': u"fail"}))
+        form = DummyForm(
+            Folder(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"fail"}))
         form.update()
 
         data, errors = form.extractData()
@@ -95,7 +114,11 @@ class TestValidatorDecorator(unittest.TestCase):
 
     def test_validator_field_view(self):
 
-        form = DummySecondaryForm(Folder(), TestRequest(form={'form.widgets.field1': u"fail"}))
+        form = DummySecondaryForm(
+            Folder(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"fail"}))
         form.update()
 
         data, errors = form.extractData()
@@ -104,7 +127,11 @@ class TestValidatorDecorator(unittest.TestCase):
 
     def test_validator_field_context(self):
 
-        form = DummyForm(Folder2(), TestRequest(form={'form.widgets.field1': u"fail"}))
+        form = DummyForm(
+            Folder2(),
+            TestRequest(
+                form={
+                    'form.widgets.field1': u"fail"}))
         form.update()
 
         data, errors = form.extractData()
@@ -114,6 +141,7 @@ class TestValidatorDecorator(unittest.TestCase):
     def test_method_not_changed(self):
         self.assertEquals(None, validate_field1(None))
         self.assertRaises(schema.ValidationError, validate_field1, 'fail')
+
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

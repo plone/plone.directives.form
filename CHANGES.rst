@@ -4,7 +4,11 @@ Changelog
 2.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- pep8.
+  [maurits]
+
+- Whitespaces cleanup.
+  [gforcada]
 
 
 2.0 (2012-08-30)

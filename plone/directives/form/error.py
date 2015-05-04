@@ -2,6 +2,7 @@ import sys
 
 from z3c.form.error import ComputedErrorViewMessage
 
+
 class error_message(object):
     """Decorator for functions which may return an error message.
 
