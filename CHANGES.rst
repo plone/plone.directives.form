@@ -4,7 +4,13 @@ Changelog
 2.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+New:
+
+- *add item here*
+
+Fixes:
+
+- *add item here*
 
 
 2.0.1 (2015-05-04)
@@ -124,4 +130,3 @@ Changelog
 ------------------
 
 * Initial release
-
