@@ -13,6 +13,8 @@ Fixes:
 - Change i18n_domain to "plone"
   [staeff]
 
+- Remove unneeded i18n-Attribute
+  [staeff]
 
 2.0.1 (2015-05-04)
 ------------------
