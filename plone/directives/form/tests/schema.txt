@@ -19,8 +19,7 @@ First, load this package's configuration:
 
     >>> configuration = """\
     ... <configure
-    ...      xmlns="http://namespaces.zope.org/zope"
-    ...      i18n_domain="plone.behavior.tests">
+    ...      xmlns="http://namespaces.zope.org/zope">
     ...
     ...     <include package="Products.Five" file="configure.zcml" />
     ...
