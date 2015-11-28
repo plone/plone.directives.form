@@ -4,17 +4,14 @@ Changelog
 2.0.2 (unreleased)
 ------------------
 
-New:
-
-- *add item here*
-
 Fixes:
 
-- Change i18n_domain to "plone"
+- Changed i18n_domain to "plone".
   [staeff]
 
-- Remove unneeded i18n-Attribute
+- Removed unneeded i18n-attribute.
   [staeff]
+
 
 2.0.1 (2015-05-04)
 ------------------
