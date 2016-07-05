@@ -13,6 +13,9 @@ Fixes:
 - Update setup.py to point to github repository.
   [esteele]
 
+- Use zope.interface decorator.
+  [gforcada]
+
 2.0.2 (2015-11-28)
 ------------------
 

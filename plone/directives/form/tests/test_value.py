@@ -2,7 +2,7 @@ import unittest
 
 import zope.component.testing
 
-from zope.interface import implements, Interface
+from zope.interface import implementer, Interface
 from zope import schema
 
 from grokcore.component.testing import grok
@@ -25,12 +25,13 @@ class IDummySchema(Interface):
     field2 = schema.TextLine(title=u"Field two")
 
 
+@implementer(IFolder)
 class Folder(object):
-    implements(IFolder)
+    pass
 
 
+@implementer(IDummySchema)
 class Dummy(object):
-    implements(IDummySchema)
 
     field1 = u"Field 1 default"
     field2 = u""
