@@ -2,7 +2,7 @@ import warnings
 import unittest
 import zope.component.testing
 
-from zope.interface import Interface, implements, alsoProvides
+from zope.interface import Interface, implementer, alsoProvides
 from zope.component import getMultiAdapter, provideUtility
 from zope.configuration.config import ConfigurationExecutionError
 
@@ -33,8 +33,8 @@ class IDummy2(Interface):
     pass
 
 
+@implementer(IDummy)
 class Dummy(object):
-    implements(IDummy)
 
     def absolute_url(self):
         return "http://dummy"
