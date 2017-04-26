@@ -340,7 +340,7 @@ These forms use `plone.autoform`_'s ``AutoExtensibleForm`` as a base class,
 allowing schema hints as shown above to be processed::
 
     from plone.directives import form
-    from z3c.form import field
+    from z3c.form import button
 
     class MyForm(form.SchemaForm):
         grok.context(ISomeContext)
