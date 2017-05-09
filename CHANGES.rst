@@ -4,11 +4,10 @@ Changelog
 2.0.3 (unreleased)
 ------------------
 
-New:
+Bug fixes:
 
-- *add item here*
-
-Fixes:
+- Remove unused import and added a missing import on example.
+  [bruno]
 
 - Update setup.py to point to github repository.
   [esteele]
